@@ -16,6 +16,7 @@ class PULearner(ABC):
         """
         self.estimator = estimator
         self.ratio = ratio
+        self.Ps1y1 = 0.0
 
     @property
     def estimator(self):
@@ -39,6 +40,16 @@ class PULearner(ABC):
             self._ratio = 0.1
         else:
             self._ratio = value
+
+    @property
+    def Ps1y1(self):
+        return self._Ps1y1
+
+    @Ps1y1.setter
+    def Ps1y1(self, value):
+        if value < 0.0 or value > 1.0:
+            raise ValueError("[o_O] Probability values should be between 0-1")
+        self._Ps1y1 = value
 
     @abstractmethod
     def extract_pos_sample(self, target):
@@ -75,12 +86,19 @@ class PULearner(ABC):
         # Predict the probability that the known positive samples are labeled
         predictions = self.estimator.predict_proba(X_out)[:, 1]    
         
-        # Return the mean probability of the above predictions --> Pr(s=1|y=1)
-        return np.mean(predictions)
+        # Calculate the mean probability of the above predictions --> Pr(s=1|y=1)
+        self.Ps1y1 = np.mean(predictions)
 
-    def pu_prob(self, X, Ps1y1):
+    def pu_prob(self, X):
         predicted_probs = self.estimator.predict_proba(X)[:, 1]
-        return predicted_probs / Ps1y1
+
+        try:
+            predicted_probs /= self.Ps1y1
+        except ZeroDivisionError:
+            print("[o_O] Division by zero in pu_prob method --> Pr(s=1|y=1) = {}".format(self.Ps1y1))
+            predicted_probs = 0
+
+        return predicted_probs 
 
 
 class SCARLearner(PULearner):
