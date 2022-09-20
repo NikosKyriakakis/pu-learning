@@ -1,7 +1,9 @@
 import numpy as np
 
+from abc import ABC, abstractmethod
 
-class PULearner:
+
+class PULearner(ABC):
     """
         A base class which embeddes the core PU learning functionality
     """
@@ -38,6 +40,59 @@ class PULearner:
         else:
             self._ratio = value
 
+    @abstractmethod
+    def extract_pos_sample(self, target):
+        """ 
+            Abstract method which when instantiated extracts 
+            a positive sample based on some algorithm
+        """
+
+    def fit(self, X, y):
+        """ Fit the classifier on the data
+
+        Args:
+            X (pandas.DataFrame): the data without any labels
+            y (pandas.Series): the pu labels
+
+        Returns:
+            numpy float: the probability that a positive labeled example is actually positive
+        """
+        
+
+        # Extract positive sample
+        indices = self.extract_pos_sample(y)
+        X_out = X.iloc[indices, :]
+
+        # Remove drawn sample
+        X = X.drop(indices)
+        y = y.drop(indices)
+
+        # Fit the model to learn 
+        # the probability that an 
+        # element is labeled Pr(s=1|x)
+        self.estimator.fit(X, y)
+
+        # Predict the probability that the known positive samples are labeled
+        predictions = self.estimator.predict_proba(X_out)[:, 1]    
+        
+        # Return the mean probability of the above predictions --> Pr(s=1|y=1)
+        return np.mean(predictions)
+
+    def pu_prob(self, X, Ps1y1):
+        predicted_probs = self.estimator.predict_proba(X)[:, 1]
+        return predicted_probs / Ps1y1
+
+
+class SCARLearner(PULearner):
+    """PU classifier which utilizes the Selected Completely at Random labeling mechanism
+
+    Args:
+        PULearner (object): the base PU classifier
+    """
+
+    def __init__(self, estimator, ratio=0.1) -> None:
+        super().__init__(estimator, ratio)
+
     def extract_pos_sample(self, target):
         """ Select positive examples completely at random 
 
@@ -58,39 +113,3 @@ class PULearner:
         sample = positive_indices[:threshold]
 
         return sample
-
-    def fit(self, X, y):
-        """ Fit the classifier on the data
-
-        Args:
-            data (pandas.DataFrame): the original dataset
-        """
-
-        # Extract positive sample
-        indices = self.extract_pos_sample(y)
-        X_out = X.iloc[indices, :]
-
-        # Remove drawn sample
-        X = X.drop(indices)
-        y = y.drop(indices)
-
-        # Fit the model to learn 
-        # the probability that an 
-        # element is labeled Pr(s=1|x)
-        self.estimator.fit(X, y)
-        # 
-        predictions = self.estimator.predict_proba(X_out)[:, 1]
-    
-        # Return the Pr(s=1|y=1)
-        return np.mean(predictions)
-
-    def pu_prob(self, X, Ps1y1):
-        predicted_labels = self.estimator.predict_proba(X)[:, 1]
-        return predicted_labels / Ps1y1
-
-    
-
-
-
-        
-        
