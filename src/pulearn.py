@@ -1,4 +1,3 @@
-from unicodedata import numeric
 import numpy as np
 
 from abc import ABC, abstractmethod
