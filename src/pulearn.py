@@ -1,3 +1,4 @@
+from unicodedata import numeric
 import numpy as np
 
 from abc import ABC, abstractmethod
@@ -134,6 +135,47 @@ class ENClassifier(PUClassifier):
             predicted_probs /= self.Ps1y1
         except ZeroDivisionError:
             print("[o_O] Division by zero in pu_prob method --> Pr(s=1|y=1) = {}".format(self.Ps1y1))
+            predicted_probs = 0
+
+        predictions = [1 if prob > threshold else 0 for prob in predicted_probs] 
+
+        return predictions
+
+
+class WeightedENCLassifier(ENClassifier):
+    """ 
+        The second algorithm of the Elkan Noto paper
+    """
+
+    def __init__(self, estimator, labeled, unlabeled, ratio=0.1) -> None:
+        super().__init__(estimator, ratio)
+        self.labeled = labeled
+        self.unlabeled = unlabeled
+
+    def predict(self, X, threshold=0.5):
+        """ Make the actual predictions
+
+        Args:
+            X (pandas.DataFrame): the data without labels
+            threshold (float, optional): a bound to decide when an example is positive or negative. Defaults to 0.5.
+
+        Returns:
+            list: the final predictions
+        """
+        predicted_probs = self.estimator.predict_proba(X)[:, 1]
+
+        np.place(predicted_probs, predicted_probs == 1.0, 0.999)
+        weights = (predicted_probs / (1 - predicted_probs)) * ((1 - self.Ps1y1) / self.Ps1y1)
+
+        numerator = float(self.labeled + weights.sum())
+        denominator = float(self.labeled + self.unlabeled)  
+
+        try:
+            estimate = numerator / denominator      
+            predicted_probs = predicted_probs * (self.Ps1y1 * estimate * (self.labeled + self.unlabeled))
+            predicted_probs /= float(self.labeled)
+        except ZeroDivisionError:
+            print("[o_O] Division by zero in predict method")
             predicted_probs = 0
 
         predictions = [1 if prob > threshold else 0 for prob in predicted_probs] 
