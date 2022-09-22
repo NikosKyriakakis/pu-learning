@@ -8,6 +8,11 @@ xgboost = "*"
 sklearn = "*"
 pandas = "*"
 numpy = "*"
+tensorflow = "*"
+keras = "*"
+nltk = "*"
+seaborn = "*"
+gdown = "*"
 
 [dev-packages]
 ipykernel = "*"
