@@ -4,17 +4,6 @@ import sys
 import os
 
 
-def project_setup():
-    """ Create necessary project folders """
-
-    # Create data folder if absent
-    if not os.path.exists("../data/"):
-        os.mkdir("../data/")
-    # Create embeddings folder if empty
-    if not os.path.exists("../embeddings/"):
-        os.mkdir("../embeddings/")
-
-
 def download_from_gdrive(resource, destination = "../data/"):
     """ Download available datasets from remote Google drive account
 
@@ -43,26 +32,3 @@ def download_from_gdrive(resource, destination = "../data/"):
         return 
 
     gdown.download(url, output, quiet=False)
-
-
-def load_embeddings(path):
-    embeddings_index = {}
-
-    with open(path, "r") as FILE:
-        for line in FILE:
-            values = line.split()
-            word = values[0]
-            coefs = np.asarray(values[1:], dtype="float32")
-            embeddings_index[word] = coefs
-
-    return embeddings_index
-
-
-def create_embeddings_matrix(embeddings_index, word_index, max_len=100):
-    embedding_matrix = np.zeros((len(word_index) + 1, max_len))
-    for word, i in word_index.items():
-        embedding_vector = embeddings_index.get(word)
-        if embedding_vector is not None:
-            embedding_matrix[i] = embedding_vector
-    
-    return embedding_matrix
