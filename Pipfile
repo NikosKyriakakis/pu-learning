@@ -13,6 +13,9 @@ keras = "*"
 nltk = "*"
 seaborn = "*"
 gdown = "*"
+zeugma = "*"
+cleanlab = "*"
+scikeras = "*"
 
 [dev-packages]
 ipykernel = "*"
