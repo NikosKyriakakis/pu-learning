@@ -20,13 +20,14 @@ def extract_sample(target, ratio):
 
     # Cut off a specified percentage of the positive examples
     threshold = int(np.ceil(ratio * len(positive_indices)))
+
     sample = positive_indices[:threshold]
 
     return sample
 
 
 class PUClassifier(ABC):
-    def __init__(self, ratio) -> None:
+    def __init__(self) -> None:
         """ Base PU learning class """
 
     @abstractmethod
