@@ -52,12 +52,11 @@ class ENClassifier(PUClassifier):
 
         # Extract positive sample
         indices = extract_sample(y, ratio)
+
         X_out = X.iloc[indices, :]
-
         # Remove drawn sample
-        X = X.drop(indices)
         y = y.drop(indices)
-
+        X = X.drop(indices)
         # Fit the model to learn 
         # the probability that an 
         # element is labeled Pr(s=1|x)
