@@ -39,3 +39,5 @@ def create_embeddings_matrix(embeddings_index, word_index):
         if embedding_vector is not None:
             # words not found in embedding index will be all-zeros.
             embedding_matrix[i] = embedding_vector
+
+    return embedding_matrix
