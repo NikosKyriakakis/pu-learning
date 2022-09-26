@@ -17,7 +17,7 @@ class RocSVM(PUClassifier):
         self.cached_model = None
 
 
-    def fit(self, X, y):
+    def fit(self, X, y, ratio=0.2):
         # Separate the data into Positive & Unlabeled sets
         self.Px, self.Py, Ux, Uy = separate_sets(X, y)
         self.Ux_test = Ux.copy()
@@ -50,7 +50,6 @@ class RocSVM(PUClassifier):
         Dy = self.Py.copy()
 
         count = 0
-        save_model = None
         while True:
             # Initialize the model
             svc = SVC()
