@@ -17,7 +17,7 @@ class RocSVM(PUClassifier):
         self._best_model = None
 
 
-    def fit(self, X, y, ratio=0.2):
+    def fit(self, X, y):
         # Separate the data into Positive & Unlabeled sets
         Px, Py, Ux, Uy = separate_sets(X, y)
         Ux_test = Ux.copy()
@@ -46,7 +46,6 @@ class RocSVM(PUClassifier):
 
         # We want to retain a copy of the original positives
         Dx = Px.copy()
-        Dy = Py.copy()
 
         count = 0
         while True:
@@ -55,8 +54,8 @@ class RocSVM(PUClassifier):
 
             # Use positives and reliable negatives as input to the SVM
             Dx = pd.concat([Dx, RNx], ignore_index=True)
-            Dy = pd.concat([Dy, RNy], ignore_index=True)
-            svc.fit(Dx, Dy)
+            Py = pd.concat([Py, RNy], ignore_index=True)
+            svc.fit(Dx, Py)
 
             # Save the first iteration
             # in case we need to rollback 
