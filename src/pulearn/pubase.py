@@ -1,38 +1,34 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
+import pandas as pd
 
+def _isolate_subset(X, y, value):
+    indices = np.where(y.values == value)[0]
+    subset_x = X.iloc[indices, :]
+    subset_y = y[indices]
 
-def separate_sets(data, target):
+    subset_x = subset_x.reset_index(drop=True)
+    subset_y = subset_y.reset_index(drop=True)
+
+    return subset_x, subset_y
+    
+    
+def separate_sets(X, y):
     """ Separate a PU dataset into a group of only positives and one of unlabeled points
 
     Args:
-        data (pd.DataFrame): the data points to separate
-        target (pd.Series): the pu-labels
+        X (pd.DataFrame): the data points to separate
+        y (pd.Series): the pu-labels
 
     Returns:
         tuple: the separated positive and unlabeled sets 
     """
 
-    # Extract all positives
-    indices = np.where(target.values == 1)[0]
-    Px = data.iloc[indices, :]
-    Py = target[indices]
+    positive_x, positive_y = _isolate_subset(X, y, 1)
+    unlabeled_x, unlabeled_y = _isolate_subset(X, y, 0)
 
-    # Extract all unlabeled
-    indices = np.where(target.values == 0)[0]
-    Ux = data.iloc[indices, :]
-    Uy = target[indices]
-
-    # Reset index to avoid errors
-    # during the iterative process 
-    # of deleting a dataframes rows
-    Px = Px.reset_index(drop=True)
-    Ux = Ux.reset_index(drop=True)
-    Py = Py.reset_index(drop=True)
-    Uy = Uy.reset_index(drop=True)
-
-    return Px, Py, Ux, Uy
+    return positive_x, positive_y, unlabeled_x, unlabeled_y
 
 
 def extract_sample(target, ratio):
@@ -63,7 +59,7 @@ class PUClassifier(ABC):
         """ Base PU learning class """
 
     @abstractmethod
-    def fit(self, X, y, ratio=0.2):
+    def fit(self, X, y):
         """ Override to specify training behaviour """
 
     @abstractmethod

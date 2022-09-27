@@ -8,7 +8,7 @@ class ENClassifier(PUClassifier):
         Classifier based on the first iteration of the Elkan Noto pape
     """
 
-    def __init__(self, estimator) -> None:
+    def __init__(self, estimator, ratio) -> None:
         """ Constructor
 
         Args:
@@ -20,6 +20,7 @@ class ENClassifier(PUClassifier):
 
         self.estimator = estimator
         self.Ps1y1 = 0.0
+        self._ratio = ratio
     
     @property
     def estimator(self):
@@ -39,7 +40,7 @@ class ENClassifier(PUClassifier):
             raise ValueError("[o_O] Probability values should be between 0-1")
         self._Ps1y1 = value
 
-    def fit(self, X, y, ratio=0.2):
+    def fit(self, X, y):
         """ Fit the classifier on the data
 
         Args:
@@ -51,7 +52,7 @@ class ENClassifier(PUClassifier):
         """
 
         # Extract positive sample
-        indices = extract_sample(y, ratio)
+        indices = extract_sample(y, self._ratio)
 
         X_out = X.iloc[indices, :]
         # Remove drawn sample
@@ -96,8 +97,8 @@ class WeightedENCLassifier(ENClassifier):
         The second algorithm of the Elkan Noto paper
     """
 
-    def __init__(self, estimator, labeled, unlabeled) -> None:
-        super().__init__(estimator)
+    def __init__(self, estimator, labeled, unlabeled, ratio) -> None:
+        super().__init__(estimator, ratio)
         
         self.labeled = labeled
         self.unlabeled = unlabeled
