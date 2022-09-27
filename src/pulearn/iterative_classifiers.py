@@ -14,14 +14,13 @@ class RocSVM(PUClassifier):
     """
     def __init__(self) -> None:
         super().__init__()
-        self.cached_model = None
+        self._best_model = None
 
 
     def fit(self, X, y, ratio=0.2):
         # Separate the data into Positive & Unlabeled sets
-        self.Px, self.Py, Ux, Uy = separate_sets(X, y)
-        self.Ux_test = Ux.copy()
-        self.Uy_test = Uy.copy()
+        Px, Py, Ux, Uy = separate_sets(X, y)
+        Ux_test = Ux.copy()
 
         # Create initial Rocchio classifier
         rocchio = NearestCentroid()
@@ -46,8 +45,8 @@ class RocSVM(PUClassifier):
         Uy = Uy.reset_index(drop=True)
 
         # We want to retain a copy of the original positives
-        Dx = self.Px.copy()
-        Dy = self.Py.copy()
+        Dx = Px.copy()
+        Dy = Py.copy()
 
         count = 0
         while True:
@@ -62,8 +61,8 @@ class RocSVM(PUClassifier):
             # Save the first iteration
             # in case we need to rollback 
             # to this version
-            if count == 1:
-                self.cached_model = deepcopy(svc)
+            if count == 0:
+                self._best_model = deepcopy(svc)
 
             print("Iteration: {}".format(count))
             print("Unlabeled points remaining: {}\n".format(Ux.shape[0]))
@@ -97,7 +96,7 @@ class RocSVM(PUClassifier):
 
         # Test the final classifier on the 
         # initial positive set
-        predictions = svc.predict(self.Px)
+        predictions = svc.predict(Px)
         positive = len([x for x in predictions if x == 1])
         negative = len([x for x in predictions if x == 0])
 
@@ -106,8 +105,17 @@ class RocSVM(PUClassifier):
         # If the misclassified points are above 5% 
         # we will rollback to the cached model
         # Else we keep the final classifier
-        if ratio < 5:
-            self.cached_model = svc   
+        if ratio < 0.05:
+            self._best_model = svc   
+
+        return Ux_test
 
     def predict(self, X):
-        pass
+        # Make a prediction on the whole unlabeled set
+        # using the best classifier so far
+        predictions = self._best_model.predict(X)
+        # Check out how many got classified with 0 or 1
+        results = np.unique(predictions, return_counts=True)
+        results = np.array(results).T
+        
+        return results
