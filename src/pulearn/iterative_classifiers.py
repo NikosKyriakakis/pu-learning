@@ -116,5 +116,6 @@ class RocSVM(PUClassifier):
         # Check out how many got classified with 0 or 1
         results = np.unique(predictions, return_counts=True)
         results = np.array(results).T
+        print(results)
         
-        return results
+        return predictions
