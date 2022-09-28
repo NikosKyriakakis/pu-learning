@@ -52,7 +52,7 @@ class ENClassifier(PUClassifier):
         """
 
         # Extract positive sample
-        indices = extract_sample(y, self._ratio)
+        indices = extract_sample(y, self._ratio, value=1)
 
         X_out = X.iloc[indices, :]
         # Remove drawn sample
