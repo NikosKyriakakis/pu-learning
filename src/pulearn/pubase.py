@@ -31,7 +31,7 @@ def separate_sets(X, y):
     return positive_x, positive_y, unlabeled_x, unlabeled_y
 
 
-def extract_sample(target, ratio):
+def extract_sample(target, ratio, value):
     """ Select positive examples completely at random 
 
     Args:
@@ -43,7 +43,7 @@ def extract_sample(target, ratio):
     """
 
     # Keep only positive indices and shuffle them
-    positive_indices = np.where(target.values == 1)[0]
+    positive_indices = np.where(target.values == value)[0]
     np.random.shuffle(positive_indices)
 
     # Cut off a specified percentage of the positive examples

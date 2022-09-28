@@ -1,4 +1,5 @@
 from sklearn.neighbors import NearestCentroid
+from sklearn.naive_bayes import *
 from sklearn.svm import SVC
 
 from copy import deepcopy
@@ -11,14 +12,17 @@ import numpy as np
 def estimator_factory(option, params):
     models = {
         "Rocchio": (lambda: NearestCentroid(**params)),
-        "SVC": (lambda: SVC(**params))
+        "SVC": (lambda: SVC(**params)),
+        "GaussianNB": (lambda: GaussianNB(**params)),
+        "MultinomialNB": (lambda: MultinomialNB(**params))
     }
 
     if option in models.keys():
         estimator = models[option]
+        return estimator
     else:
-        estimator = None
-    return estimator
+        raise ValueError("Classifier options = {} --> Provided was: {}".format(models.keys(), option))
+    
 
 
 class TwostepClassifier(PUClassifier):
@@ -117,7 +121,7 @@ class TwostepClassifier(PUClassifier):
 
         try:
             ratio = negative / positive
-            print("Negative/Positive ratio: {}".format(ratio))
+            # print("Negative/Positive ratio: {}".format(ratio))
         except ZeroDivisionError:
             # Dummy value
             ratio = 0.1
