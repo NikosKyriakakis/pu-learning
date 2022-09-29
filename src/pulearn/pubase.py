@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from xmlrpc.client import boolean
 
 import numpy as np
 import pandas as pd
@@ -57,6 +58,18 @@ def extract_sample(target, ratio, value):
 class PUClassifier(ABC):
     def __init__(self) -> None:
         """ Base PU learning class """
+        self.is_fitted = False
+
+    @property
+    def is_fitted(self):
+        return self._is_fitted
+
+    @is_fitted.setter
+    def is_fitted(self, value):
+        if type(value) != boolean:
+            raise ValueError("[o_O] Only 'True' or 'False' allowed in boolean variables")
+        else:
+            self._is_fitted = value
 
     @abstractmethod
     def fit(self, X, y):
