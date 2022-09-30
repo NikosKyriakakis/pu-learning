@@ -19,7 +19,7 @@ def extract_file(filename, output_dir):
         print("[o_O] {}".format(bad_zip))
 
 
-def download_embeddings(option):
+def download_embeddings(option, force_extraction=False):
     """ Download pretrained embeddings
     Args:
         option (str): the name of the embedding to download
@@ -44,13 +44,16 @@ def download_embeddings(option):
 
     command, zip_file = embedding_options[option]
     filename = os.path.join(output_dir, zip_file)
-    if os.path.exists(filename):
-        print("[~_o] Embedding file already present, skipping download ...")
-    else:
-        os.system(command)
 
     output = os.path.join(output_dir, option)
-    extract_file(filename, output_dir=output)
+    dest_exists = os.path.exists(output)
+    if not dest_exists or force_extraction == True:
+        if os.path.exists(filename):
+            print("[~_o] Embedding file already present, skipping download ...")
+        else:
+            os.system(command)
+        extract_file(filename, output_dir=output)
+
 
 
 def download_from_gdrive(resource, destination="../data/"):
