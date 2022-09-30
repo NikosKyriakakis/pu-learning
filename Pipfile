@@ -16,6 +16,10 @@ gdown = "*"
 zeugma = "*"
 cleanlab = "*"
 scikeras = "*"
+catboost = "*"
+pytorch-lightning = "*"
+torchtext = "*"
+fasttext = "*"
 
 [dev-packages]
 ipykernel = "*"
