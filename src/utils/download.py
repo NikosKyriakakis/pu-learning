@@ -1,5 +1,4 @@
 import gdown
-import fasttext.util
 import sys
 import os
 
@@ -18,33 +17,40 @@ def extract_file(filename, output_dir):
             zipref.extractall(path=output_dir)
     except BadZipFile as bad_zip:
         print("[o_O] {}".format(bad_zip))
-        return 1
-
-    return 0
 
 
 def download_embeddings(option):
     """ Download pretrained embeddings
-
     Args:
         option (str): the name of the embedding to download
-
     Returns:
         int: status code
     """
+    output_dir = "../embeddings/"
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
 
-    if not os.path.exists("../embeddings/"):
-        os.mkdir("../embeddings/")
+    embedding_options = {
+        "glove": ("wget --no-check-certificate http://nlp.stanford.edu/data/glove.6B.zip", "glove.6B.zip"),
+        "fasttext-wiki": ("wget --no-check-certificate https://dl.fbaipublicfiles.com/fasttext/vectors-english/wiki-news-300d-1M.vec.zip", "wiki-news-300d-1M.vec.zip"),
+        "fasttext-crawl": ("wget --no-check-certificate https://dl.fbaipublicfiles.com/fasttext/vectors-english/crawl-300d-2M.vec.zip", "crawl-300d-2M.vec.zip")
+    }
 
-    if option == "glove":
-        if not os.path.exists("../embeddings/glove.6B.zip"):
-            os.system("wget --no-check-certificate http://nlp.stanford.edu/data/glove.6B.zip -O ../embeddings/glove.6B.zip")
-        extract_file("../embeddings/glove.6B.zip", output_dir="../embeddings/glove")
-    elif option == "fasttext":
-        os.chdir("../embeddings/")
-        fasttext.util.download_model('en', if_exists='ignore')
+    if option not in embedding_options:
+        print("[@_@] Unknown embedding option provided --> Supported files: {}".format(embedding_options.keys()))
+        return
+
+    os.chdir(output_dir)
+
+    command, zip_file = embedding_options[option]
+    filename = os.path.join(output_dir, zip_file)
+    if os.path.exists(filename):
+        print("[~_o] Embedding file already present, skipping download ...")
     else:
-        print("[@_@] Provided embeddings name is not supported")
+        os.system(command)
+
+    output = os.path.join(output_dir, option)
+    extract_file(filename, output_dir=output)
 
 
 def download_from_gdrive(resource, destination="../data/"):
@@ -72,7 +78,7 @@ def download_from_gdrive(resource, destination="../data/"):
     output = os.path.join(destination, resource)
     
     if os.path.exists(output):
-        print("[~_o] File already exists --> Aborting download")
+        print("[~_o] Dataset already exists --> Aborting download")
         return 
 
     gdown.download(url, output, quiet=False)
