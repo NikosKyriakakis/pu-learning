@@ -1,4 +1,4 @@
-from base import *
+from pulearn.iterative.base import *
 
 
 # Do not use -- currently contains a bug

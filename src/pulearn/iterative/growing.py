@@ -1,4 +1,4 @@
-from base import *
+from pulearn.iterative.base import *
 
 
 class GrowingClassifier(IterativeClassifier):

@@ -1,4 +1,4 @@
-from vocab import Vocabulary
+from textprep.vocab import Vocabulary
 from nltk.stem import WordNetLemmatizer
 
 import pandas as pd
@@ -59,11 +59,13 @@ class Vectorizer:
             label_vocab.add_token(label)
 
         sequences = []
+        documents = []
         max_len = 0
         for document in data.text:
             for func, params in prep_funcs.items():
                 params["document"] = document
                 document = func(**params)
+            documents.append(document)
 
             sequence = []
             for word in document.split():
@@ -85,4 +87,4 @@ class Vectorizer:
 
         vectorizer = Vectorizer(text_vocab, label_vocab)
 
-        return sequences, vectorizer
+        return sequences, documents, vectorizer
