@@ -20,6 +20,7 @@ catboost = "*"
 pytorch-lightning = "*"
 torchtext = "*"
 fasttext = "*"
+tqdm = "*"
 
 [dev-packages]
 ipykernel = "*"
