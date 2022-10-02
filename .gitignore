@@ -2,3 +2,4 @@ data/
 papers/
 embeddings/
 __pycache__/
+src/lightning_logs/
