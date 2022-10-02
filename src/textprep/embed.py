@@ -44,6 +44,7 @@ class EmbeddingsHandler:
             embeddings = np.random.uniform(-0.25, 0.25, (len(self.vocab.word2index), dim))
             embeddings[self.vocab.lookup_token(pad_token)] = np.zeros((dim,))
 
+            print("\n[*_*] Loading {} pretrained embeddings ...".format(self.filename.split("/")[-1]))
             for line in tqdm(file_ref):
                 tokens = line.rstrip().split(' ')
                 word = tokens[0]

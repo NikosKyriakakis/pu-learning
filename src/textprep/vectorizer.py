@@ -1,11 +1,7 @@
 from textprep.vocab import Vocabulary
-from nltk.stem import WordNetLemmatizer
 
 import pandas as pd
 import string
-
-
-lemmatizer = WordNetLemmatizer()
 
 
 def to_lower(document):
@@ -20,7 +16,7 @@ def to_remove_symbols(document):
     return processed
 
 
-class Vectorizer:
+class SequenceVectorizer:
     def __init__(self, text_vocab, label_vocab) -> None:
         self._text_vocab = text_vocab
         self._label_vocab = label_vocab
@@ -59,13 +55,11 @@ class Vectorizer:
             label_vocab.add_token(label)
 
         sequences = []
-        documents = []
         max_len = 0
         for document in data.text:
             for func, params in prep_funcs.items():
                 params["document"] = document
                 document = func(**params)
-            documents.append(document)
 
             sequence = []
             for word in document.split():
@@ -85,6 +79,6 @@ class Vectorizer:
             padding = pad_size * [pad_index]
             sequences[i] += padding
 
-        vectorizer = Vectorizer(text_vocab, label_vocab)
+        vectorizer = SequenceVectorizer(text_vocab, label_vocab)
 
-        return sequences, documents, vectorizer
+        return sequences, vectorizer
