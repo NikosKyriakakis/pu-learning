@@ -1,14 +1,11 @@
 from torch.utils.data import Dataset, DataLoader
 from pulearn.pubase import extract_sample
-from utils.download import *
-from textprep.vectorizer import *
-from textprep.embed import EmbeddingsHandler
 from typing import Optional
 
-import pytorch_lightning as pl
 import numpy as np
 import pandas as pd
 import os
+import pytorch_lightning as pl
 import torch
 
 
@@ -28,10 +25,10 @@ class DeceptiveOpinionsDataset(Dataset):
 
 class DeceptiveOpinionsDataModule(pl.LightningDataModule):
 
-    def __init__(self, batch_size=64, num_workers=int(os.cpu_count() / 2), pretrained_embed="fasttext-crawl") -> None:
+    def __init__(self, documents, batch_size=64, num_workers=int(os.cpu_count() / 2)) -> None:
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.pretrained_embed = pretrained_embed
+        self.documents = documents
         self._params = {"batch_size":batch_size, "num_workers":num_workers}
         self.prepare_data_per_node = True
         self._log_hyperparams = True
@@ -58,27 +55,6 @@ class DeceptiveOpinionsDataModule(pl.LightningDataModule):
         subset_docs = subset_docs.loc[indices]
         
         return subset_docs
-
-    def prepare_data(self) -> None:
-        download_from_gdrive("deceptive-opinion.csv")
-
-        self.documents = pd.read_csv("../data/deceptive-opinion.csv")
-        self.documents["deceptive"] = self.documents["deceptive"].apply(lambda x: 0 if x == "truthful" else 1)
-        self.documents["label"] = self.documents["deceptive"].copy()
-        self.documents = self.documents.drop(columns=["hotel", "source", "polarity", "deceptive"])
-
-        self.documents["sequences"], self.documents["text"], vectorizer = Vectorizer.from_dataframe (
-            self.documents, 
-            "text", 
-            "label", 
-            prep_funcs={
-                to_lower: {},
-                to_remove_symbols: {}
-            }
-        )
-
-        emb_handler = EmbeddingsHandler(vectorizer.text_vocab, pretrained=self.pretrained_embed)
-        self.embeddings = emb_handler.load_embeddings()
         
     def setup(self, stage: Optional[str] = None) -> None:
         # Get deceptive documents & non deceptive documents
