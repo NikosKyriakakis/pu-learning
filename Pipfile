@@ -17,8 +17,6 @@ zeugma = "*"
 cleanlab = "*"
 scikeras = "*"
 catboost = "*"
-pytorch-lightning = "*"
-torchtext = "*"
 fasttext = "*"
 tqdm = "*"
 
@@ -27,3 +25,6 @@ ipykernel = "*"
 
 [requires]
 python_version = "3.10"
+
+[pipenv]
+allow_prereleases = true

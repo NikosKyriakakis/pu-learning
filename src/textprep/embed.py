@@ -2,12 +2,13 @@ from tqdm import tqdm
 from utils.download import download_embeddings
 
 import numpy as np
+import torch
+
 
 
 class EmbeddingsHandler:
     def __init__(self, vocab, pretrained=None, dim=300) -> None:
         self.vocab = vocab
-        self.embeddings = None
         self.dim = dim
 
         self._map = {
@@ -49,4 +50,5 @@ class EmbeddingsHandler:
                 if self.vocab.lookup_token(word) != self.vocab.unk_index:
                     embeddings[self.vocab.lookup_token(word)] = np.array(tokens[1:], dtype=np.float32)
 
-        self.embeddings = embeddings
+        return torch.tensor(embeddings)
+
