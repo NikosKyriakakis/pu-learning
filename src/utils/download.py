@@ -54,6 +54,8 @@ def download_embeddings(option, force_extraction=False):
             os.system(command)
         extract_file(filename, output_dir=output)
 
+    os.chdir("../src")
+
 
 
 def download_from_gdrive(resource, destination="../data/"):
@@ -75,13 +77,13 @@ def download_from_gdrive(resource, destination="../data/"):
         sys.exit(-1)
     
     if not os.path.exists(destination):
-        print("[~_o] Provided destination folder does not exist --> Creating one now ...")
+        print("[*_*] Provided destination folder does not exist --> Creating one now ...")
         os.mkdir(destination)
 
     output = os.path.join(destination, resource)
     
     if os.path.exists(output):
-        print("[~_o] Dataset already exists --> Aborting download")
+        print("[~_o] Dataset found locally --> Aborting download")
         return 
 
     gdown.download(url, output, quiet=False)
