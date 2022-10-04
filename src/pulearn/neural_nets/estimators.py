@@ -1,10 +1,11 @@
-from pyparsing import Optional
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import numpy as np
+
+from pulearn.neural_nets.nnpu_loss import PULoss
 
 
 class CNNEstimator(nn.Module):
@@ -47,17 +48,28 @@ class CNNEstimator(nn.Module):
         return X
 
 
-class DocumentClassifier(pl.LightningModule):
+class PUNet(pl.LightningModule):
     def __init__(
         self,
         estimator,
-        criterion,
-        learning_rate
+        learning_rate,
+        prior=0.5, 
+        gamma=1, 
+        beta=0, 
+        nn_pu=True, 
+        loss_fn=(lambda x: torch.sigmoid(-x))
     ) -> None:
+
         super().__init__()
-        self.criterion = criterion
+    
         self.learning_rate = learning_rate
         self.estimator = estimator
+
+        self.prior = prior
+        self.gamma = gamma
+        self.beta = beta
+        self.loss_fn = loss_fn
+        self.nn_pu = nn_pu
 
     def forward(self, X_in):
         X_out = self.estimator(X_in)
@@ -66,7 +78,8 @@ class DocumentClassifier(pl.LightningModule):
     def run_step(self, batch, stage):
         sequences, labels = batch
         logits = self(sequences)
-        loss = self.criterion(logits, labels)
+        loss_fct = PULoss(prior=self.prior, gamma=self.gamma, beta=self.beta, nn_pu=self.nn_pu, loss_fn=self.loss_fn)
+        loss = loss_fct(logits.view(-1), labels)
         self.log(f"{stage}_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
 
         return loss
