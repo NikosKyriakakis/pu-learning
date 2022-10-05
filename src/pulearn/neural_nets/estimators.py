@@ -53,7 +53,7 @@ class PUNet(pl.LightningModule):
         self,
         estimator,
         learning_rate,
-        prior=0.5, 
+        pi_p=0.5, 
         gamma=1, 
         beta=0, 
         nn_pu=True, 
@@ -65,7 +65,7 @@ class PUNet(pl.LightningModule):
         self.learning_rate = learning_rate
         self.estimator = estimator
 
-        self.prior = prior
+        self.pi_p = pi_p
         self.gamma = gamma
         self.beta = beta
         self.loss_fn = loss_fn
@@ -78,7 +78,8 @@ class PUNet(pl.LightningModule):
     def run_step(self, batch, stage):
         sequences, labels = batch
         logits = self(sequences)
-        loss_fct = PULoss(prior=self.prior, gamma=self.gamma, beta=self.beta, nn_pu=self.nn_pu, loss_fn=self.loss_fn)
+        labels = labels.type(torch.float)
+        loss_fct = PULoss(pi_p=self.pi_p, gamma=self.gamma, beta=self.beta, nn_pu=self.nn_pu, loss_fn=self.loss_fn)
         loss = loss_fct(logits.view(-1), labels)
         self.log(f"{stage}_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
 

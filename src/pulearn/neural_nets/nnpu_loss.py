@@ -3,9 +3,11 @@ import torch.nn as nn
 
 
 class PULoss(nn.Module):
+    one = torch.tensor(1.)
+
     def __init__ (
         self, 
-        prior, 
+        pi_p, 
         gamma=1, 
         beta=0, 
         nn_pu=True, 
@@ -14,42 +16,37 @@ class PULoss(nn.Module):
 
         super().__init__()
 
-        self.prior = prior
+        self.pi_p = pi_p
         self.gamma = gamma
         self.beta = beta
         self.loss_fn = loss_fn
         self.nn_pu = nn_pu
 
     def forward(self, logits, labels):
-
         # Predictions and labels
         # need to have exactly same dimension 
         assert(logits.shape == labels.shape)
 
         # Isolate positive & unlabeled samples
-        positive = (labels == 1)
-        unlabeled = (labels == -1)
-
-        # Ensure tensors are of float type
-        positive = positive.type(torch.float)
-        unlabeled = unlabeled.type(torch.float)
+        positive = (labels == 1).type(torch.float)
+        unlabeled = (labels == -1).type(torch.float)
 
         # Get total number of positives & unlabeled
-        min_count = torch.tensor(1.)
-        n_positive = torch.max(min_count, torch.sum(positive))
-        n_unlabeled = torch.max(min_count, torch.sum(unlabeled))
+        n_positive = torch.max(PULoss.one, torch.sum(positive))
+        n_unlabeled = torch.max(PULoss.one, torch.sum(unlabeled))
 
         # Pass logits through specified loss function
-        y_positive = self.loss_fn(logits)
-        y_unlabeled = self.loss_fn(-logits)
+        Rp_plus = self.loss_fn(positive * logits)
+        Rp_minus = self.loss_fn(-positive * logits)
+        Ru_minus = self.loss_fn(-unlabeled * logits)
 
         # Calculate positive & negative risk
-        positive_risk = torch.sum(self.prior * positive / n_positive * y_positive)
-        negative_risk = torch.sum((unlabeled / n_unlabeled - self.prior * positive / n_positive) * y_unlabeled)
+        positive_risk = self.pi_p * (torch.sum(Rp_plus) / n_positive)
+        negative_risk = (torch.sum(Ru_minus) / n_unlabeled) - (self.pi_p * torch.sum(Rp_minus) / n_positive)
 
         if self.nn_pu and negative_risk < -self.beta:
             loss = -self.gamma * negative_risk
         else:
             loss = positive_risk + negative_risk
-        
+
         return loss
