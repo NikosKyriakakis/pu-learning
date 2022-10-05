@@ -36,9 +36,9 @@ class PULoss(nn.Module):
         n_unlabeled = torch.max(PULoss.one, torch.sum(unlabeled))
 
         # Pass logits through specified loss function
-        Rp_plus = self.loss_fn(positive * logits)
-        Rp_minus = self.loss_fn(-positive * logits)
-        Ru_minus = self.loss_fn(-unlabeled * logits)
+        Rp_plus = self.loss_fn(positive * logits) * positive
+        Rp_minus = self.loss_fn(-positive * logits) * positive
+        Ru_minus = self.loss_fn(-unlabeled * logits) * unlabeled
 
         # Calculate positive & negative risk
         positive_risk = self.pi_p * (torch.sum(Rp_plus) / n_positive)
