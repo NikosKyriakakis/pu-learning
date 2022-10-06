@@ -17,9 +17,10 @@ def to_remove_symbols(document):
 
 
 class SequenceVectorizer:
-    def __init__(self, text_vocab, label_vocab) -> None:
+    def __init__(self, text_vocab, label_vocab, max_len) -> None:
         self._text_vocab = text_vocab
         self._label_vocab = label_vocab
+        self.max_len = max_len
 
     @property
     def text_vocab(self):
@@ -30,7 +31,7 @@ class SequenceVectorizer:
         return self._label_vocab
 
     @classmethod
-    def from_dataframe(cls, data, text_column, label_column, prep_funcs={}):
+    def from_dataframe(cls, data, text_column="text", label_column="label", prep_funcs={}):
         """ Instantiate a vectorizer from the passed in dataframe
 
         Args:
@@ -54,31 +55,34 @@ class SequenceVectorizer:
         for label in sorted(set(data[label_column])):
             label_vocab.add_token(label)
 
-        sequences = []
         max_len = 0
         for document in data.text:
             for func, params in prep_funcs.items():
                 params["document"] = document
                 document = func(**params)
 
-            sequence = []
-            for word in document.split():
-                word_index = text_vocab.add_token(word)
-                sequence.append(word_index)
+            words = document.split()
+            for word in words:                    
+                text_vocab.add_token(word)
 
-            current_len = len(sequence)
+            current_len = len(words)
             if current_len > max_len:
                 max_len = current_len
 
-            sequences.append(sequence)
+        vectorizer = SequenceVectorizer(text_vocab, label_vocab, max_len)
 
-        pad_token = text_vocab.pad_token
-        pad_index = text_vocab.lookup_token(pad_token)
-        for i in range(len(sequences)):
-            pad_size = max_len - len(sequences[i])
-            padding = pad_size * [pad_index]
-            sequences[i] += padding
+        return vectorizer
 
-        vectorizer = SequenceVectorizer(text_vocab, label_vocab)
+    def vectorize(self, document):
+        pad_token = self.text_vocab.pad_token
+        pad_index = self.text_vocab.lookup_token(pad_token)
 
-        return sequences, vectorizer
+        sequence = []
+        for word in document.split():
+            word_index = self.text_vocab.lookup_token(word)
+            sequence.append(word_index)
+        pad_size = self.max_len - len(sequence)
+        padding = pad_size * [pad_index]
+        sequence += padding
+
+        return sequence

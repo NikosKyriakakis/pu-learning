@@ -79,10 +79,11 @@ class PUNet(pl.LightningModule):
         sequences, labels = batch
         logits = self(sequences)
         labels = labels.type(torch.float)
+
         loss_fct = PULoss(pi_p=self.pi_p, gamma=self.gamma, beta=self.beta, nn_pu=self.nn_pu, loss_fn=self.loss_fn)
         loss = loss_fct(logits.view(-1), labels)
         self.log(f"{stage}_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
-
+        
         return loss
 
     def training_step(self, batch, batch_idx):
