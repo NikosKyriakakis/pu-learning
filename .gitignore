@@ -1,5 +1,6 @@
 data/
-papers/
 embeddings/
 __pycache__/
 lightning_logs/
+.pytest_cache/
+.vscode/
