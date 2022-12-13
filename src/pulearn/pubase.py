@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from xmlrpc.client import boolean
+from console import *
 
 import numpy as np
-import pandas as pd
+
 
 def _isolate_subset(X, y, value):
     indices = np.where(y.values == value)[0]
@@ -66,8 +66,8 @@ class PUClassifier(ABC):
 
     @is_fitted.setter
     def is_fitted(self, value):
-        if type(value) != boolean:
-            raise ValueError("[o_O] Only 'True' or 'False' allowed in boolean variables")
+        if type(value) != bool:
+            raise ValueError(error("Only 'True' or 'False' allowed in boolean variables"))
         else:
             self._is_fitted = value
 

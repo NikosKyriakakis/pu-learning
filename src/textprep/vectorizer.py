@@ -41,13 +41,13 @@ class SequenceVectorizer:
         """
 
         if type(data) != pd.DataFrame:
-            raise ValueError("[o_O] Illegal parameter provided --> 'data' argument should be a pandas DataFrame")
+            raise ValueError("[!] Illegal parameter provided --> 'data' argument should be a pandas DataFrame")
         
         if text_column not in data.columns:
-            raise ValueError("[o_O] Provided text column was not found in dataframe's columns")
+            raise ValueError("[!] Provided text column was not found in dataframe's columns")
 
         if label_column not in data.columns:
-            raise ValueError("[o_O] Provided label column was not found in dataframe's columns")
+            raise ValueError("[!] Provided label column was not found in dataframe's columns")
 
         text_vocab = Vocabulary(add_unk=True, add_pad=True)
         label_vocab = Vocabulary(add_unk=False, add_pad=False)
@@ -56,15 +56,16 @@ class SequenceVectorizer:
             label_vocab.add_token(label)
 
         max_len = 0
-        for document in data.text:
+        for idx, document in enumerate(data.text):
             for func, params in prep_funcs.items():
                 params["document"] = document
                 document = func(**params)
+            data.text[idx] = document
 
             words = document.split()
             for word in words:                    
                 text_vocab.add_token(word)
-
+            
             current_len = len(words)
             if current_len > max_len:
                 max_len = current_len
@@ -81,6 +82,10 @@ class SequenceVectorizer:
         for word in document.split():
             word_index = self.text_vocab.lookup_token(word)
             sequence.append(word_index)
+
+        if len(sequence) > self.max_len:
+            sequence = sequence[:self.max_len]
+
         pad_size = self.max_len - len(sequence)
         padding = pad_size * [pad_index]
         sequence += padding

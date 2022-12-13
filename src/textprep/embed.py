@@ -1,55 +1,82 @@
 from tqdm import tqdm
-from utils.download import download_embeddings
+from configuration import *
+from console import *
+from os import listdir, walk
+from os.path import join
 
 import numpy as np
 import torch
 
 
-
-class EmbeddingsHandler:
-    def __init__(self, vocab, pretrained=None, dim=300) -> None:
+class EmbeddingLoader:
+    def __init__(self, vocab, mgr) -> None:
         self.vocab = vocab
-        self.dim = dim
+        self._map = {}
+        self._mgr = mgr
+        self.embedding_path = ""
+      
+    def _discover_embedding_subdirs(self):
+        self._map = {}
+        embedding_dir = self._mgr.settings["embedding_dir"]
+        directories = next(walk(embedding_dir))[1]
 
-        self._map = {
-            "fasttext-wiki": "../embeddings/fasttext-wiki/wiki-news-300d-1M.vec",
-            "fasttext-crawl": "../embeddings/fasttext-crawl/crawl-300d-2M.vec",
-            "glove50": "../embeddings/glove/glove.6B.50d.txt",
-            "glove100": "../embeddings/glove/glove.6B.100d.txt",
-            "glove200": "../embeddings/glove/glove.6B.200d.txt",
-            "glove300": "../embeddings/glove/glove.6B.300d.txt"
-        }
+        for dir in directories:
+            relative_path = join(embedding_dir, dir)
+            files = listdir(relative_path)
+            for file in files:
+                self._map[file[:-4]] = join(relative_path, file)
 
-        if pretrained is not None and pretrained in self._map:
-            if "glove" in pretrained:
-                option = "glove"
-            else:
-                option = pretrained
-
-            download_embeddings(option)
-
-            self.filename = self._map[pretrained]
-        else:
-            self.filename = None
-
-
-    def load_embeddings(self, mode="r", encoding="utf-8", newline="\n", errors="ignore", dim=300):
-        pad_token = self.vocab.pad_token
-        embeddings = None
-        
-        with open(self.filename, mode, encoding=encoding, newline=newline, errors=errors) as file_ref:
-            if "fasttext" in self.filename:
-                file_ref.readline()
+    def init_embeddings (
+        self, 
+        dim,
+        pretrained, 
+        mode="r", 
+        encoding="utf-8", 
+        newline="\n", 
+        errors="ignore"
+    ):
+        if dim <= 0:
+            raise UserWarning(error("Zero or negative dimensions are not allowed."))
             
-            embeddings = np.random.uniform(-0.25, 0.25, (len(self.vocab.word2index), dim))
-            embeddings[self.vocab.lookup_token(pad_token)] = np.zeros((dim,))
+        embeddings = np.random.uniform(-0.25, 0.25, (len(self.vocab.word2index), dim))
+        pad_token = self.vocab.pad_token
+        embeddings[self.vocab.lookup_token(pad_token)] = np.zeros((dim,))
 
-            print("\n[*_*] Loading {} pretrained embeddings ...".format(self.filename.split("/")[-1]))
-            for line in tqdm(file_ref):
-                tokens = line.rstrip().split(' ')
-                word = tokens[0]
-                if self.vocab.lookup_token(word) != self.vocab.unk_index:
-                    embeddings[self.vocab.lookup_token(word)] = np.array(tokens[1:], dtype=np.float32)
+        if pretrained is None:
+            print(hourglass("Using random embeddings ..."))
+            return torch.tensor(embeddings)
 
+        if "glove" in pretrained:
+            option = "glove"
+        elif "wiki" in pretrained:
+            option = "fasttext-wiki"
+        elif "crawl" in pretrained:
+            option = "fasttext-crawl"
+        else:
+            raise ValueError(error("Invalid pretrained embedding name provided --> Check available pretrained embeddings in appsettings.json"))
+
+        self._mgr.download_embeddings(option)
+        self._discover_embedding_subdirs()
+        if pretrained not in self._map:
+            raise ValueError(error("Pretrained embeddings option is not valid --> Check that filename is the same as in the embeddings folder."))
+        self.embedding_path = self._map[pretrained]
+        
+        with open(self.embedding_path, mode, encoding=encoding, newline=newline, errors=errors) as file_ref:
+            if "glove" not in self.embedding_path:
+                file_ref.readline()
+
+            print(hourglass("Loading {} pretrained embeddings ...".format(self.embedding_path.split("/")[-1])))
+
+            try:
+                for line in tqdm(file_ref):
+                    tokens = line.rstrip().split(' ')
+                    word = tokens[0]
+                    if self.vocab.lookup_token(word) != self.vocab.unk_index:
+                        embeddings[self.vocab.lookup_token(word)] = np.array(tokens[1:], dtype=np.float32)
+            except ValueError:
+                raise UserWarning(error("Check if selected embeddings file matches provided dimension (e.g., glove.6B.50d expects dim=50)"))
+            
+            print(success("Pretrained embeddings loaded successfully"))
+            
         return torch.tensor(embeddings)
 

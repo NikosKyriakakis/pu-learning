@@ -3,6 +3,7 @@ from sklearn.naive_bayes import *
 from sklearn.svm import SVC
 
 from pulearn.pubase import *
+from console import *
 
 import pandas as pd
 import numpy as np
@@ -19,7 +20,7 @@ def estimator_factory(option, params):
         estimator = models[option]
         return estimator
     else:
-        raise ValueError("Classifier options = {} --> Provided was: {}".format(models.keys(), option))
+        raise ValueError(error("Classifier options = {} --> Provided was: {}".format(models.keys(), option)))
     
 
 def isolate_reliable_sample(X, y, predictions):
@@ -91,7 +92,7 @@ class IterativeClassifier(PUClassifier):
 
         count = 0
         while True:
-            print("Iteration: {}".format(count))
+            print(hourglass("Iteration: {}".format(count)))
 
             # Initialize the model
             self._estimator = estimator_factory(self.est_name2, self.params2)()
