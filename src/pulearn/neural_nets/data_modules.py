@@ -5,6 +5,7 @@ from typing import Optional
 from textprep.vectorizer import *
 from configuration import *
 from console import *
+from sklearn.utils import shuffle
 
 import os
 import pandas as pd
@@ -39,6 +40,7 @@ class TextDataModule(pl.LightningDataModule):
         negative_value,
         keep_positive=0.3,
         vectorizer_factory=SequenceVectorizer,
+        dev_run=False,
         prep_funcs={
             to_lower: {}, 
             to_remove_symbols: {}
@@ -69,9 +71,9 @@ class TextDataModule(pl.LightningDataModule):
         self._dataloader_params = dataloader_params
         self.prepare_data_per_node = True
         self._log_hyperparams = True
-        self.prepare_data()
+        self.prepare_data(dev_run=dev_run)
 
-    def prepare_data(self) -> None:
+    def prepare_data(self, dev_run) -> None:
         if self.prepared_flag:
             return
 
@@ -89,7 +91,7 @@ class TextDataModule(pl.LightningDataModule):
             dtype={
                 self.input_field: "string",
                 self.target_field: "string"
-            }
+            },
         )
 
         self.documents.rename (
@@ -106,6 +108,10 @@ class TextDataModule(pl.LightningDataModule):
             self.documents["label"] = self.documents["label"].apply(lambda x: 0 if x == self.negative_value else 1)
         else:
             raise UserWarning(error("Invalid label type provided"))
+
+        if dev_run:
+            self.documents = shuffle(self.documents).reset_index()
+            self.documents = self.documents.head(10000)
         
         indices = extract_sample(self.documents["label"], ratio=self.keep_positive, value=1)
         self.documents["pu-label"] = 0

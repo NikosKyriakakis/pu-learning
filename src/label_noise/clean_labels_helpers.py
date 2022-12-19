@@ -22,11 +22,18 @@ def correct_label_issues(datamodule, estimator, folds=5):
         return_indices_ranked_by="self_confidence",
     )
 
-    print(warning(f"Cleanlab found {len(ranked_label_issues)} label issues"))
+    print(warning(f"Cleanlab found {len(ranked_label_issues)} potential label issues"))
+
+    doc_list = datamodule.documents.values.tolist()
+    for i, issue_index in enumerate(ranked_label_issues):
+        if doc_list[issue_index][3] == 0:
+            print(doc_list[issue_index])
+        # print(f"Index = {i}\n")
 
     for issue_index in ranked_label_issues:
-        if datamodule.documents["pu-label"].iloc[issue_index] == 1:
-            # print(datamodule.documents.at[issue_index, "text"] + "\n")
-            datamodule.documents.at[issue_index, "pu-label"] = 0
-        elif datamodule.documents["pu-label"].iloc[issue_index] == 0:
+        # if datamodule.documents["pu-label"].iloc[issue_index] == 1:
+        #     datamodule.documents.at[issue_index, "pu-label"] = 0
+        if datamodule.documents["pu-label"].iloc[issue_index] == 0:
             datamodule.documents.at[issue_index, "pu-label"] = 1
+
+    

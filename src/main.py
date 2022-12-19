@@ -24,10 +24,11 @@ if __name__ == "__main__":
     # data to the deep learning model which will be used
     datamodule = TextDataModule (
         download_mgr=download_mgr, 
-        csv_file="deceptive-opinion.csv", 
-        input_field="text", 
-        target_field="deceptive",
-        negative_value="truthful",
+        csv_file="imdb.txt", 
+        input_field="Text", 
+        target_field="Sentiment",
+        negative_value=0,
+        dev_run=True,
         dataloader_params={
             "batch_size": 64, 
             "num_workers": int(os.cpu_count() / 2)
