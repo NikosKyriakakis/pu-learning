@@ -8,7 +8,7 @@ import numpy as np
 from pulearn\
     .neural_nets\
     .loss_functions\
-    .nnpu_loss import NNPULoss
+    .nnpu_loss import *
 
 
 class MLP5(nn.Module):
@@ -75,7 +75,7 @@ class CNNEstimator(nn.Module):
         X = [F.max_pool1d(x_i, kernel_size=x_i.shape[2]) for x_i in X]
         X = torch.cat([x_i.squeeze(dim=2) for x_i in X], dim=1)
         X = self.linear_layer(self.dropout(X))
-
+     
         return X
 
 
@@ -111,6 +111,16 @@ class PUNet(pl.LightningModule):
         optimizer = optim.Adagrad(self.parameters(), lr=self.learning_rate)
         return optimizer
 
+    def run_step(self, batch, stage):
+        sequences, labels = batch
+        logits = self(sequences)
+        labels = labels.type(torch.float)
+
+        loss = self.loss(logits.view(-1), labels)
+        self.log(f"{stage}_loss", loss, on_epoch=True, prog_bar=True)
+        
+        return loss
+
 
 class NNPUNet(PUNet):
     def __init__(
@@ -134,12 +144,25 @@ class NNPUNet(PUNet):
             positive_class=positive_class
         )
 
-    def run_step(self, batch, stage):
-        sequences, labels = batch
-        logits = self(sequences)
-        labels = labels.type(torch.float)
 
-        loss = self.loss(logits.view(-1), labels)
-        self.log(f"{stage}_loss", loss, on_epoch=True, prog_bar=True)
-        
-        return loss
+class AAPUNet(PUNet):
+    def __init__(
+        self,
+        estimator,
+        learning_rate,
+        positive_class=1,
+        prior=0.5, 
+        gamma=1, 
+        beta=0,
+        loss_fn=(lambda x: logloss(-x))
+    ) -> None:
+
+        super().__init__(estimator, learning_rate)
+
+        self.loss = NNPULoss (
+            prior=prior, 
+            gamma=gamma, 
+            beta=beta, 
+            loss_fn=loss_fn, 
+            positive_class=positive_class
+        )
