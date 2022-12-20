@@ -58,7 +58,7 @@ class TextDataModule(pl.LightningDataModule):
         self.csv_file = csv_file
         self.input_field = input_field
         self.target_field = target_field
-
+        self._dev_run = dev_run
         self.negative_value = negative_value
         self.keep_positive = keep_positive
 
@@ -71,9 +71,9 @@ class TextDataModule(pl.LightningDataModule):
         self._dataloader_params = dataloader_params
         self.prepare_data_per_node = True
         self._log_hyperparams = True
-        self.prepare_data(dev_run=dev_run)
+        self.prepare_data()
 
-    def prepare_data(self, dev_run) -> None:
+    def prepare_data(self) -> None:
         if self.prepared_flag:
             return
 
@@ -109,7 +109,7 @@ class TextDataModule(pl.LightningDataModule):
         else:
             raise UserWarning(error("Invalid label type provided"))
 
-        if dev_run:
+        if self._dev_run:
             self.documents = shuffle(self.documents).reset_index()
             self.documents = self.documents.head(10000)
         

@@ -8,6 +8,7 @@ def correct_label_issues(datamodule, estimator, folds=5):
     X = np.array([datamodule.vectorizer.vectorize(x) for x in datamodule.documents["text"].tolist()])
     y = np.array(datamodule.documents["pu-label"])
 
+    print(hourglass(f"Performing {folds}-fold cross validation to get out-of-sample prediction probabilities ..."))
     pred_probs = cross_val_predict (
         estimator,
         X,
@@ -15,6 +16,8 @@ def correct_label_issues(datamodule, estimator, folds=5):
         cv=folds,
         method="predict_proba"
     )
+
+    print(success("Out-of-sample prediction probabilities computed"))
 
     ranked_label_issues = find_label_issues (
         y,
@@ -24,11 +27,12 @@ def correct_label_issues(datamodule, estimator, folds=5):
 
     print(warning(f"Cleanlab found {len(ranked_label_issues)} potential label issues"))
 
-    doc_list = datamodule.documents.values.tolist()
-    for i, issue_index in enumerate(ranked_label_issues):
-        if doc_list[issue_index][3] == 0:
-            print(doc_list[issue_index])
-        # print(f"Index = {i}\n")
+    # # <DEBUG>
+    # doc_list = datamodule.documents.values.tolist()
+    # for issue_index in ranked_label_issues:
+    #     if doc_list[issue_index][-1] == 0:
+    #         print(doc_list[issue_index])
+    # # </DEBUG>
 
     for issue_index in ranked_label_issues:
         # if datamodule.documents["pu-label"].iloc[issue_index] == 1:
