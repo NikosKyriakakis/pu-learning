@@ -23,8 +23,9 @@ class MLP5(nn.Module):
         input_size = int((embed_size * max_len) / kernel_size)
         self.input_layer = nn.Linear(input_size, 300)
         self.hidden_layer = nn.Linear(300, 300)
-        self.last_layer = nn.Linear(300, 1)
+        self.last_layer = nn.Linear(300, 2)
         self.dropout = nn.Dropout()
+        self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, input_ids):
         X = self.embedding(input_ids).float()
@@ -32,10 +33,8 @@ class MLP5(nn.Module):
         X = F.avg_pool1d(X, kernel_size=8) 
         X = F.softsign(self.input_layer(X))
         X = self.dropout(X)
-        # X = F.softsign(self.hidden_layer(X))
-        # X = F.softsign(self.hidden_layer(X))
-        X = F.softsign(self.last_layer(X))
-
+        X = self.softmax(self.last_layer(X))
+        
         return X
 
 
@@ -46,7 +45,8 @@ class CNNEstimator(nn.Module):
         pretrained_embedding, 
         num_filters=[100, 100, 100], 
         filter_sizes=[3, 4, 5],
-        dropout=0.5
+        dropout=0.5,
+        apply_softmax=False
     ) -> None:
 
         super().__init__()
@@ -67,6 +67,8 @@ class CNNEstimator(nn.Module):
 
         self.linear_layer = nn.Linear(np.sum(num_filters), num_classes)
         self.dropout = nn.Dropout(p=dropout)
+        self._apply_softmax = apply_softmax
+        self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, input_ids):
         X = self.embedding(input_ids).float()
@@ -75,6 +77,9 @@ class CNNEstimator(nn.Module):
         X = [F.max_pool1d(x_i, kernel_size=x_i.shape[2]) for x_i in X]
         X = torch.cat([x_i.squeeze(dim=2) for x_i in X], dim=1)
         X = self.linear_layer(self.dropout(X))
+
+        if self._apply_softmax:
+            X = self.softmax(X)
      
         return X
 
