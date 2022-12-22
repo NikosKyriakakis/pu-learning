@@ -4,7 +4,10 @@ from pulearn.neural_nets.estimators import *
 from configuration import *
 from cleanlab.classification import *
 from label_noise.clean_labels_helpers import *
+
 from sklearn.ensemble import RandomForestClassifier
+# from skorch import NeuralNetClassifier
+# from pulearn.neural_nets.loss_functions.adaptive_loss import AdaptiveLossFunctionMod
 
 import pytorch_lightning as pl
 import json
@@ -12,7 +15,7 @@ import json
 
 def save_logs(logs):
     with open("logs.txt", "w") as checkpoint:
-        json.dump(logs, checkpoint)
+        json.dump(logs, checkpoint, indent=4)
 
 
 # Driver code
@@ -35,7 +38,7 @@ if __name__ == "__main__":
         negative_value=0,
         dev_run=False,
         dataloader_params={
-            "batch_size": 64, 
+            "batch_size": 128, 
             "num_workers": int(os.cpu_count() / 2)
         }
     )
@@ -54,17 +57,34 @@ if __name__ == "__main__":
     )
 
     logs = {}
-    for iteration in range(10):
+    for iteration in range(3):
         # This is the neural network 
         # which will be used to classify the examples 
         estimator = CNNEstimator(num_classes=1, pretrained_embedding=pretrained)
 
-        pu_labels = datamodule.documents["pu-label"].value_counts()
+        sample_selector = RandomForestClassifier(n_jobs=1)
+        # adaptive_loss = AdaptiveLossFunctionMod(device="cuda:0", num_dims=3, float_dtype=np.float32)
 
-        print(success(f"Labels before applying cleanlab: \t{pu_labels.to_dict()}"))
+        # sample_selector = NeuralNetClassifier (
+        #     MLP5 (
+        #         pretrained_embedding=pretrained, 
+        #         max_len=datamodule.vectorizer.max_len
+        #     ), 
+        #     criterion=nn.CrossEntropyLoss, 
+        #     device="cuda"
+        # )
 
-        rf = RandomForestClassifier(n_jobs=-1)
-        correct_label_issues(datamodule, rf)
+        # sample_selector = NeuralNetClassifier (
+        #     CNNEstimator (
+        #         num_classes=2, 
+        #         pretrained_embedding=pretrained, 
+        #         apply_softmax=True
+        #     ), 
+        #     criterion=nn.CrossEntropyLoss, 
+        #     device="cuda"
+        # )
+        
+        correct_label_issues(datamodule, sample_selector, n_jobs=5)
 
         # This is an nnPU wrapper 
         # object used to specify 
@@ -73,22 +93,27 @@ if __name__ == "__main__":
         pu_net = NNPUNet (
             estimator=estimator, 
             learning_rate=0.001,
-            prior=0.44
+            prior=0.5
         )
 
         # Trainer is used
         # to specify model checkpoints,
         # training epochs, etc ...
         trainer = pl.Trainer (
-            max_epochs=40,
+            max_epochs=250,
             accelerator="gpu",
             devices=1,
+            precision=16
             # fast_dev_run=True
         )
 
         trainer.fit(pu_net, datamodule)
 
         results = trainer.test(datamodule=datamodule, ckpt_path="best")
+
+        pu_labels = datamodule.documents["pu-label"].value_counts()
+
+        print(success(f"Current labels: \t{pu_labels.to_dict()}"))
     
         logs[iteration] = { "Sample selection stats": pu_labels.to_dict(),  "Test Results": results}
     
