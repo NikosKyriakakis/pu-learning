@@ -126,12 +126,18 @@ class TextDataModule(pl.LightningDataModule):
         self.prepared_flag = True
             
     def setup(self, stage: Optional[str] = None) -> None:
-        pu_set = self.documents[["text", "pu-label"]]
-
         test_size = self.datasplit_params["test_size"]
         val_size = self.datasplit_params["val_size"]
 
-        train_set, test_set = train_test_split(pu_set, test_size=test_size)
+        train_set, test_set = train_test_split(self.documents, test_size=test_size)
+        train_set = train_set.drop("label", axis=1)
+        test_set = test_set.drop("pu-label", axis=1)
+        test_set.rename (
+            columns={
+                "label": "pu-label"
+            },
+            inplace=True
+        )
         val_set, test_set = train_test_split(test_set, test_size=val_size)
 
         self.train_set = TextDataset(train_set, self.vectorizer)
