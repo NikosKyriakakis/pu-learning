@@ -42,7 +42,7 @@ class EmbeddingLoader:
         pad_token = self.vocab.pad_token
         embeddings[self.vocab.lookup_token(pad_token)] = np.zeros((dim,))
 
-        if pretrained is None:
+        if pretrained == "random":
             print(hourglass("Using random embeddings ..."))
             return torch.tensor(embeddings)
 
