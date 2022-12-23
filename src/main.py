@@ -36,7 +36,7 @@ if __name__ == "__main__":
         input_field="Text", 
         target_field="Sentiment",
         negative_value=0,
-        dev_run=False,
+        dev_run=True,
         dataloader_params={
             "batch_size": 128, 
             "num_workers": int(os.cpu_count() / 2)
@@ -60,9 +60,10 @@ if __name__ == "__main__":
     for iteration in range(3):
         # This is the neural network 
         # which will be used to classify the examples 
-        estimator = CNNEstimator(num_classes=1, pretrained_embedding=pretrained)
+        # estimator = CNN_Estimator(pretrained_embeddings=pretrained)
+        estimator = LSTM_Estimator(pretrained_embeddings=pretrained)
 
-        sample_selector = RandomForestClassifier(n_jobs=1)
+        sample_selector = RandomForestClassifier(n_jobs=2)
         # adaptive_loss = AdaptiveLossFunctionMod(device="cuda:0", num_dims=3, float_dtype=np.float32)
 
         # sample_selector = NeuralNetClassifier (
@@ -70,17 +71,17 @@ if __name__ == "__main__":
         #         pretrained_embedding=pretrained, 
         #         max_len=datamodule.vectorizer.max_len
         #     ), 
-        #     criterion=nn.CrossEntropyLoss, 
+        #     criterion=nn.NLLoss, 
         #     device="cuda"
         # )
 
         # sample_selector = NeuralNetClassifier (
-        #     CNNEstimator (
+        #     CNN_Estimator (
         #         num_classes=2, 
         #         pretrained_embedding=pretrained, 
         #         apply_softmax=True
         #     ), 
-        #     criterion=nn.CrossEntropyLoss, 
+        #     criterion=nn.NLLoss, 
         #     device="cuda"
         # )
         
@@ -100,10 +101,10 @@ if __name__ == "__main__":
         # to specify model checkpoints,
         # training epochs, etc ...
         trainer = pl.Trainer (
-            max_epochs=250,
-            accelerator="gpu",
-            devices=1,
-            precision=16
+            max_epochs=10,
+            accelerator="cpu",
+            # devices=1,
+            # precision=16
             # fast_dev_run=True
         )
 
