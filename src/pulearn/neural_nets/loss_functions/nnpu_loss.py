@@ -2,10 +2,6 @@ import torch
 import torch.nn as nn
 
 
-def logloss(x):
-    return torch.log(1 + torch.exp(-x))
-
-
 class NNPULoss(nn.Module):
     def __init__ (
         self, 

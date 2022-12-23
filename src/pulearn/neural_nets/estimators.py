@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+import torchmetrics as tm
 import numpy as np
 
 from pulearn\
@@ -95,13 +96,11 @@ class PUNet(pl.LightningModule):
 
         self.learning_rate = learning_rate
         self.estimator = estimator
+        # self.f1_score = tm.F1Score(average="macro", num_classes=1)
 
     def forward(self, X_in):
         X_out = self.estimator(X_in)
         return X_out
-
-    def run_step(self, batch, stage):
-        raise NotImplementedError()
         
     def training_step(self, batch, batch_idx):
         return self.run_step(batch, "train")
@@ -122,8 +121,10 @@ class PUNet(pl.LightningModule):
         labels = labels.type(torch.float)
 
         loss = self.loss(logits.view(-1), labels)
+        # self.f1_score(logits.view(-1), labels.type(torch.int64))
         self.log(f"{stage}_loss", loss, on_epoch=True, prog_bar=True)
-        
+        # self.log(f"{stage}_F1", self.f1_score, on_epoch=True, prog_bar=True)
+
         return loss
 
 
@@ -137,29 +138,6 @@ class NNPUNet(PUNet):
         gamma=1, 
         beta=0,
         loss_fn=(lambda x: torch.sigmoid(-x))
-    ) -> None:
-
-        super().__init__(estimator, learning_rate)
-
-        self.loss = NNPULoss (
-            prior=prior, 
-            gamma=gamma, 
-            beta=beta, 
-            loss_fn=loss_fn, 
-            positive_class=positive_class
-        )
-
-
-class AAPUNet(PUNet):
-    def __init__(
-        self,
-        estimator,
-        learning_rate,
-        positive_class=1,
-        prior=0.5, 
-        gamma=1, 
-        beta=0,
-        loss_fn=(lambda x: logloss(-x))
     ) -> None:
 
         super().__init__(estimator, learning_rate)
