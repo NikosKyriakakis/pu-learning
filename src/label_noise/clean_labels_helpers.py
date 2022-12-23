@@ -40,6 +40,8 @@ def correct_label_issues(datamodule, estimator, folds=5, n_jobs=-1):
 
             flipped += 1
 
-    print(success(f"Correct labels flipped {correct_flips / flipped * 100} %"))
+    print(success(f"Correct labels flipped {correct_flips}"))
+    print(success(f"Total flips {flipped}"))
+    print(success(f"Correct flip ratio {correct_flips / flipped * 100} %"))
 
     
