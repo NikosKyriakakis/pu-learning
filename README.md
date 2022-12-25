@@ -17,3 +17,10 @@ Currently active project on document classification using Positive - Unlabeled l
 
 [6] Fasttext crawl embeddings can be found here:  https://dl.fbaipublicfiles.com/fasttext/vectors-english/crawl-300d-2M.vec.zip
 
+[7] @article{BarronCVPR2019,
+  Author = {Jonathan T. Barron},
+  Title = {A General and Adaptive Robust Loss Function},
+  Journal = {CVPR},
+  Year = {2019}
+}
+
