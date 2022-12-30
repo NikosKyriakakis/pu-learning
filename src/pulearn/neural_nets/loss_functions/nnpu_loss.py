@@ -3,13 +3,12 @@ import torch.nn as nn
 
 
 class NNPULoss(nn.Module):
-    def __init__ (
-        self, 
-        prior, 
-        gamma, 
-        beta, 
-        loss_fn,
-        positive_class
+    def __init__(
+            self,
+            prior,
+            gamma,
+            beta,
+            positive_class
     ) -> None:
 
         super().__init__()
@@ -17,14 +16,17 @@ class NNPULoss(nn.Module):
         self.prior = prior
         self.gamma = gamma
         self.beta = beta
-        self.loss_fn = loss_fn
         self.positive_class = positive_class
         self.unlabeled_class = 1 - positive_class
+
+    def _surrogate_loss(self, logits, labels):
+        return torch.sigmoid(-logits)
 
     def forward(self, logits, labels):
         # Predictions and labels
         # need to have exactly same dimension 
-        assert(logits.shape == labels.shape)
+        logits = logits.view(-1)
+        assert (logits.shape == labels.shape)
 
         # Isolate positive & unlabeled samples
         positive = (labels == self.positive_class).float()
@@ -36,8 +38,8 @@ class NNPULoss(nn.Module):
 
         # Pass logits through loss function
         # to get estimates
-        y_positive = self.loss_fn(logits)
-        y_unlabeled = self.loss_fn(-logits)
+        y_positive = self._surrogate_loss(logits, labels)
+        y_unlabeled = self._surrogate_loss(-logits, labels)
 
         # Calculate partial risks
         positive_risk = torch.sum(self.prior * positive / n_positive * y_positive)
