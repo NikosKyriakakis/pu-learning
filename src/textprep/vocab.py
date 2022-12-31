@@ -1,17 +1,15 @@
+from src.console import error
+
+
 class Vocabulary:
     def __init__(
-        self, add_unk, add_pad, 
-        unk_token="<UNK>", pad_token="<PAD>", 
-        word2index=None
+            self,
+            add_unk: bool,
+            add_pad: bool,
+            unk_token: str = "<UNK>",
+            pad_token: str = "<PAD>",
+            word2index: dict = None
     ) -> None:
-        """
-        Args:
-            word2index (dict): a pre-­existing map of tokens to indices
-            add_unk (bool): a flag that indicates whether to add the UNK token
-            unk_token (str): the UNK token to add into the Vocabulary
-            add_pad (bool): a flag that indicates whether to add the PAD token
-            pad_token (str): the PAD token to add into the Vocabulary
-        """
 
         if word2index is None:
             word2index = {}
@@ -31,46 +29,38 @@ class Vocabulary:
             self._unk_index = self.add_token(unk_token)
 
     @property
-    def unk_index(self):
+    def unk_index(self) -> int:
         return self._unk_index
 
     @property
-    def word2index(self):
+    def word2index(self) -> dict:
         return self._word2index
 
     @property
-    def index2word(self):
+    def index2word(self) -> dict:
         return self._index2word
 
     @property
-    def pad_token(self):
+    def pad_token(self) -> str:
         return self._pad_token
 
     @pad_token.setter
-    def pad_token(self, value):
+    def pad_token(self, value: str) -> None:
         if not isinstance(value, str):
-            raise ValueError("[@_@] Required string parameter --> Passed was: {}".format(type(value)))
+            raise ValueError(error("Required string parameter --> Passed was: {}".format(type(value))))
         self._pad_token = value
 
     @property
-    def unk_token(self):
+    def unk_token(self) -> str:
         return self._unk_token
 
     @unk_token.setter
-    def unk_token(self, value):
+    def unk_token(self, value: str) -> None:
         if not isinstance(value, str):
-            raise ValueError("[@_@] Required string parameter --> Passed was: {}".format(type(value)))
+            raise ValueError(error("Required string parameter --> Passed was: {}".format(type(value))))
         self._unk_token = value
 
-    def add_token(self, token):
-        """ Update mapping dicts based on the token.
-
-        Args:
-            token (str): the item to add into the Vocabulary
-        Returns:
-            index (int): the integer corresponding to the token
-        """
-
+    def add_token(self, token: str) -> int:
         if token in self._word2index:
             index = self._word2index[token]
         else:
@@ -80,38 +70,15 @@ class Vocabulary:
 
         return index
 
-    def lookup_token(self, token):
-        """ Retrieve the index associated with the token
-            or the UNK index if token isn't present.
-        Args:
-            token (str): the token to look up
-        Returns:
-            index (int): the index corresponding to the token
-        
-        Notes:
-            `unk_index` needs to be >=0 (having been added into the Vocabulary)
-            for the UNK functionality
-        """
-
+    def lookup_token(self, token: str) -> int:
         if self._add_unk:
             return self.word2index.get(token, self.unk_index)
         else:
             return self.word2index[token]
 
-    def lookup_index(self, index):
-        """ Return the token associated with the index
-        
-        Args:
-            index (int): the index to look up
-        
-        Returns:
-            token (str): the token corresponding to the index
-        Raises:
-            KeyError: if the index is not in the Vocabulary
-        """
-
+    def lookup_index(self, index: int) -> str:
         if index not in self._index2word:
-            raise KeyError("[@_@] index (%d) is not in the vocabulary" % index)
+            raise KeyError(error("Index (%d) is not in the vocabulary" % index))
 
         return self.index2word[index]
 
@@ -121,5 +88,5 @@ class Vocabulary:
             contents += word + ": " + str(i) + "\n"
         return contents
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.word2index)

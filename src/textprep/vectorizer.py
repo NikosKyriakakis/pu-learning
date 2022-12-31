@@ -1,14 +1,15 @@
-from textprep.vocab import Vocabulary
-
 import pandas as pd
 import string
 
+from src.console import error
+from src.textprep.vocab import Vocabulary
 
-def to_lower(document):
+
+def to_lower(document: str) -> str:
     return document.lower().strip()
 
 
-def to_remove_symbols(document):
+def to_remove_symbols(document: str) -> str:
     processed = ""
     for letter in document:
         if letter not in string.punctuation:
@@ -17,37 +18,38 @@ def to_remove_symbols(document):
 
 
 class SequenceVectorizer:
-    def __init__(self, text_vocab, label_vocab, max_len) -> None:
+    def __init__(self, text_vocab: Vocabulary, label_vocab: Vocabulary, max_len: int) -> None:
         self._text_vocab = text_vocab
         self._label_vocab = label_vocab
         self.max_len = max_len
 
     @property
-    def text_vocab(self):
+    def text_vocab(self) -> Vocabulary:
         return self._text_vocab
 
     @property
-    def label_vocab(self):
+    def label_vocab(self) -> Vocabulary:
         return self._label_vocab
 
     @classmethod
-    def from_dataframe(cls, data, text_column="text", label_column="label", prep_funcs={}):
-        """ Instantiate a vectorizer from the passed in dataframe
-
-        Args:
-            data (pandas.DataFrame): the data to vectorize
-        Returns: 
-            an instance of TextVectorizer
-        """
+    def from_dataframe(
+            cls,
+            data: pd.DataFrame,
+            text_column: str = "text",
+            label_column: str = "label",
+            prep_funcs: dict = None
+    ):
+        if prep_funcs is None:
+            prep_funcs = {}
 
         if type(data) != pd.DataFrame:
-            raise ValueError("[!] Illegal parameter provided --> 'data' argument should be a pandas DataFrame")
-        
+            raise ValueError(error("Illegal parameter provided --> 'data' argument should be a pandas DataFrame"))
+
         if text_column not in data.columns:
-            raise ValueError("[!] Provided text column was not found in dataframe's columns")
+            raise ValueError(error("Provided text column was not found in dataframe's columns"))
 
         if label_column not in data.columns:
-            raise ValueError("[!] Provided label column was not found in dataframe's columns")
+            raise ValueError(error("Provided label column was not found in dataframe's columns"))
 
         text_vocab = Vocabulary(add_unk=True, add_pad=True)
         label_vocab = Vocabulary(add_unk=False, add_pad=False)
@@ -63,9 +65,9 @@ class SequenceVectorizer:
             data.text[idx] = document
 
             words = document.split()
-            for word in words:                    
+            for word in words:
                 text_vocab.add_token(word)
-            
+
             current_len = len(words)
             if current_len > max_len:
                 max_len = current_len
@@ -74,7 +76,7 @@ class SequenceVectorizer:
 
         return vectorizer
 
-    def vectorize(self, document):
+    def vectorize(self, document: str) -> list[int]:
         pad_token = self.text_vocab.pad_token
         pad_index = self.text_vocab.lookup_token(pad_token)
 

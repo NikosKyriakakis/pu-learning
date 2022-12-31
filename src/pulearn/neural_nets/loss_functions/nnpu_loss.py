@@ -5,10 +5,10 @@ import torch.nn as nn
 class NNPULoss(nn.Module):
     def __init__(
             self,
-            prior,
-            gamma,
-            beta,
-            positive_class
+            prior: float,
+            gamma: float,
+            beta: float,
+            positive_class: int
     ) -> None:
 
         super().__init__()
@@ -19,10 +19,10 @@ class NNPULoss(nn.Module):
         self.positive_class = positive_class
         self.unlabeled_class = 1 - positive_class
 
-    def _surrogate_loss(self, logits, labels):
+    def _surrogate_loss(self, logits: torch.Tensor, labels: torch.Tensor = None):
         return torch.sigmoid(-logits)
 
-    def forward(self, logits, labels):
+    def forward(self, logits: torch.Tensor, labels: torch.Tensor):
         # Predictions and labels
         # need to have exactly same dimension 
         logits = logits.view(-1)

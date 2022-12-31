@@ -21,7 +21,7 @@
     "data_dir": "../data",
     "embedding_dir": "../embeddings",
     "pretrained_embedding": {
-        "option": "glove.6B.50d",
-        "dim": 50
+        "option": "glove.6B.100d",
+        "dim": 100
     }
 }
