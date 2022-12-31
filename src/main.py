@@ -1,27 +1,22 @@
-from pulearn.neural_nets.data_modules import TextDataModule
-from textprep.embed import EmbeddingLoader
-from pulearn.neural_nets.estimators import *
+from lightgbm import LGBMClassifier
+
 from configuration import *
-from cleanlab.classification import *
 from label_noise.clean_labels_helpers import *
-
-from sklearn.ensemble import RandomForestClassifier
-# from skorch import NeuralNetClassifier
-# from pulearn.neural_nets.loss_functions.adaptive_loss import AdaptiveLossFunctionMod
-
-import pytorch_lightning as pl
-import json
+from pulearn.neural_nets.data_modules import TextDataModule
+from pulearn.neural_nets.estimators import *
+from src.pulearn.neural_nets.loss_functions.nnpu_loss import NNPULoss
+from textprep.embed import EmbeddingLoader
 
 
-def save_logs(logs):
+def save_logs(output):
     with open("logs.txt", "w") as checkpoint:
-        json.dump(logs, checkpoint, indent=4)
+        json.dump(output, checkpoint, indent=4)
 
 
 # Driver code
 if __name__ == "__main__":
     # Load configuration settings
-    settings = load_settings("appsettings.json")
+    settings = load_settings("app-settings.json")
 
     # Create a download manager that handles
     # downloading the pretrained embeddings, datasets, etc ...
@@ -30,92 +25,69 @@ if __name__ == "__main__":
     # The text data module is the main
     # component that prepares and provides
     # data to the deep learning model which will be used
-    datamodule = TextDataModule (
-        download_mgr=download_mgr, 
-        csv_file="imdb.txt", 
-        input_field="Text", 
-        target_field="Sentiment",
-        negative_value=0,
-        dev_run=True,
+    datamodule = TextDataModule(
+        download_mgr=download_mgr,
+        csv_file="PU_20News.csv",
+        input_field="text",
+        target_field="label",
+        negative_value=-1,
+        dev_run=False,
         dataloader_params={
-            "batch_size": 128, 
+            "batch_size": 128,
             "num_workers": int(os.cpu_count() / 2)
         }
     )
 
     # The embedding loader currently supports
     # loading GloVe & FastText pretrained embeddings
-    loader = EmbeddingLoader (
+    loader = EmbeddingLoader(
         datamodule.vectorizer.text_vocab,
         mgr=download_mgr
     )
 
     pretrained_embedding_options = settings["pretrained_embedding"]
-    pretrained = loader.init_embeddings (
-        pretrained=pretrained_embedding_options["option"], 
+    pretrained = loader.init_embeddings(
+        pretrained=pretrained_embedding_options["option"],
         dim=pretrained_embedding_options["dim"]
     )
 
     logs = {}
-    for iteration in range(3):
+    for iteration in range(7):
         # This is the neural network 
         # which will be used to classify the examples 
-        # estimator = CNN_Estimator(pretrained_embeddings=pretrained)
-        estimator = LSTM_Estimator(pretrained_embeddings=pretrained)
+        estimator = CnnEstimator(pretrained_embeddings=pretrained)
 
-        sample_selector = RandomForestClassifier(n_jobs=2)
-        # adaptive_loss = AdaptiveLossFunctionMod(device="cuda:0", num_dims=3, float_dtype=np.float32)
+        # sample_selector = RandomForestClassifier(n_jobs=-1)
+        sample_selector = LGBMClassifier(n_jobs=-1)
 
-        # sample_selector = NeuralNetClassifier (
-        #     MLP5 (
-        #         pretrained_embedding=pretrained, 
-        #         max_len=datamodule.vectorizer.max_len
-        #     ), 
-        #     criterion=nn.NLLoss, 
-        #     device="cuda"
-        # )
-
-        # sample_selector = NeuralNetClassifier (
-        #     CNN_Estimator (
-        #         num_classes=2, 
-        #         pretrained_embedding=pretrained, 
-        #         apply_softmax=True
-        #     ), 
-        #     criterion=nn.NLLoss, 
-        #     device="cuda"
-        # )
-        
+        # Using the sample selector above
+        # we extract positives to enrich the positive set
         correct_label_issues(datamodule, sample_selector, n_jobs=5)
 
-        # This is an nnPU wrapper 
-        # object used to specify 
-        # nnPU hyperparameters 
-        # such as β, γ, prior, ...
-        pu_net = NNPUNet (
-            estimator=estimator, 
+        # Create wrappers for nnPU loss & estimator
+        loss_fn = NNPULoss(prior=0.44, gamma=1, beta=0, positive_class=1)
+        pu_net = PUNet(
+            estimator=estimator,
             learning_rate=0.001,
-            prior=0.5
+            loss_fn=loss_fn
         )
 
         # Trainer is used
         # to specify model checkpoints,
         # training epochs, etc ...
-        trainer = pl.Trainer (
-            max_epochs=10,
-            accelerator="cpu",
-            # devices=1,
-            # precision=16
+        trainer = pl.Trainer(
+            max_epochs=100,
+            accelerator="gpu",
+            devices=1,
+            precision=16,
             # fast_dev_run=True
         )
 
         trainer.fit(pu_net, datamodule)
-
         results = trainer.test(datamodule=datamodule, ckpt_path="best")
 
         pu_labels = datamodule.documents["pu-label"].value_counts()
+        print(success(f"Iteration: {iteration} - Current labels: \t{pu_labels.to_dict()}"))
+        logs[iteration] = {"Sample selection stats": pu_labels.to_dict(), "Test Results": results}
 
-        print(success(f"Current labels: \t{pu_labels.to_dict()}"))
-    
-        logs[iteration] = { "Sample selection stats": pu_labels.to_dict(),  "Test Results": results}
-    
     save_logs(logs)
