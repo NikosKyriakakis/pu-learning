@@ -20,4 +20,4 @@ Active project on document classification using Positive - Unlabeled learning te
 [3] Fasttext crawl embeddings can be found here:  https://dl.fbaipublicfiles.com/fasttext/vectors-english/crawl-300d-2M.vec.zip
 
 ## License
-Distributed under the MIT License. See LICENSE.txt for more information.
+Distributed under the MIT License. See LICENSE for more information.
