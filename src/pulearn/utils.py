@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 
 
-def _isolate_subset(X: pd.DataFrame, y: pd.Series, value: int) -> tuple:
+def _isolate_subset(x: pd.DataFrame, y: pd.Series, value: int) -> tuple:
     indices = np.where(y.values == value)[0]
-    subset_x = X.iloc[indices, :]
+    subset_x = x.iloc[indices, :]
     subset_x = subset_x.reset_index(drop=True)
     subset_y = y[indices]
     subset_y = subset_y.reset_index(drop=True)
@@ -12,9 +12,9 @@ def _isolate_subset(X: pd.DataFrame, y: pd.Series, value: int) -> tuple:
     return subset_x, subset_y
     
     
-def separate_sets(X: pd.DataFrame, y: pd.Series) -> tuple:
-    positive_x, positive_y = _isolate_subset(X, y, 1)
-    unlabeled_x, unlabeled_y = _isolate_subset(X, y, 0)
+def separate_sets(x: pd.DataFrame, y: pd.Series) -> tuple:
+    positive_x, positive_y = _isolate_subset(x, y, 1)
+    unlabeled_x, unlabeled_y = _isolate_subset(x, y, 0)
 
     return positive_x, positive_y, unlabeled_x, unlabeled_y
 
