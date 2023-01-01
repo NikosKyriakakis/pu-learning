@@ -62,7 +62,7 @@ class SequenceVectorizer:
             for func, params in prep_funcs.items():
                 params["document"] = document
                 document = func(**params)
-            data[text_column[idx]] = document
+            data[text_column][idx] = document
 
             words = document.split()
             for word in words:

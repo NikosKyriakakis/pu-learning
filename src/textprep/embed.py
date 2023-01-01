@@ -31,7 +31,7 @@ class EmbeddingLoader:
     def init_embeddings(
             self,
             dim: int,
-            pretrained,
+            pretrained: str,
             mode: str = "r",
             encoding: str = "utf-8",
             newline: str = "\n",
