@@ -8,24 +8,17 @@ from src.console import error, hourglass, success, warning
 
 
 def load_settings(filename: str) -> dict:
-    try:
-        with open(filename) as file_stream:
-            settings = json.load(file_stream)
-    except IOError as io_error:
-        raise UserWarning(error("{}".format(io_error)))
+    print(hourglass("Loading project settings"))
+    with open(filename) as file_stream:
+        settings = json.load(file_stream)
 
     return settings
 
 
 def extract_file(filename: str, output_dir: str) -> None:
-    try:
-        print(hourglass("Extracting file: {}".format(filename)))
-        with ZipFile(filename, "r") as zip_ref:
-            zip_ref.extractall(path=output_dir)
-    except BadZipFile as bad_zip:
-        raise UserWarning(error("{}".format(bad_zip)))
-    except IOError as io_error:
-        raise UserWarning(error("{}".format(io_error)))
+    print(hourglass("Extracting file: {}".format(filename)))
+    with ZipFile(filename, "r") as zip_ref:
+        zip_ref.extractall(path=output_dir)
 
 
 class DownloadManager:
@@ -46,7 +39,8 @@ class DownloadManager:
 
         if option not in embedding_options:
             raise UserWarning(
-                error("Unknown embedding option provided --> Supported files: {}".format(embedding_options.keys())))
+                error("Unknown embedding option provided --> Supported files: {}".format(embedding_options.keys()))
+            )
 
         os.chdir(embedding_dir)
 

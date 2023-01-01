@@ -58,11 +58,11 @@ class SequenceVectorizer:
             label_vocab.add_token(label)
 
         max_len = 0
-        for idx, document in enumerate(data.text):
+        for idx, document in enumerate(data[text_column]):
             for func, params in prep_funcs.items():
                 params["document"] = document
                 document = func(**params)
-            data.text[idx] = document
+            data[text_column[idx]] = document
 
             words = document.split()
             for word in words:
