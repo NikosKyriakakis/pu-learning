@@ -1,0 +1,12 @@
+cleanlab==2.2.0
+colorama==0.4.6
+gdown==4.6.0
+lightgbm==3.3.3
+mockito==1.4.0
+numpy>=1.14.6
+pandas==1.5.2
+pytest==7.2.0
+pytorch_lightning==1.8.6
+scikit_learn==1.2.0
+torch==1.13.1+cu117
+tqdm==4.64.1
