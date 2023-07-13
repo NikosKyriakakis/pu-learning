@@ -1,16 +1,14 @@
 import os
-from typing import Optional
-
 import pandas as pd
 import pytorch_lightning as pl
 import torch
+
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
-
 from console import error, warning
 from pulearn.utils import extract_sample
 from textprep.vectorizer import SequenceVectorizer, to_lower, to_remove_symbols
-
+from typing import Optional
 from logger import *
 
 
