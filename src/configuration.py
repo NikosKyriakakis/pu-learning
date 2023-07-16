@@ -1,10 +1,10 @@
-from zipfile import ZipFile
-
 import gdown
 import json
-import os
+import os, sys
+import subprocess
 
 from console import error, hourglass, success, warning
+from zipfile import ZipFile
 
 
 def load_settings(filename: str) -> dict:
@@ -16,6 +16,8 @@ def load_settings(filename: str) -> dict:
 
 
 def extract_file(filename: str, output_dir: str) -> None:
+    if os.name == "nt":
+        filename = filename.replace("/", "\\")
     print(hourglass("Extracting file: {}".format(filename)))
     with ZipFile(filename, "r") as zip_ref:
         zip_ref.extractall(path=output_dir)
@@ -31,6 +33,7 @@ class DownloadManager:
         self.restore_path = os.getcwd()
 
     def download_embeddings(self, option: str, force_extraction: bool = False) -> None:
+        print(warning(f"Attempting to download {option} ..."))
         embedding_dir = self.settings["embedding_dir"]
         embedding_options = self.settings["embedding_options"]
 
@@ -53,7 +56,12 @@ class DownloadManager:
             if os.path.exists(filename):
                 print(success("Embedding file already present, skipping download ..."))
             else:
-                os.system(embedding["command"])
+                try:
+                    subprocess.run(embedding["command"], check=True)
+                except subprocess.CalledProcessError as e:
+                    print("Execution failed:", e, file=sys.stderr)
+                    sys.exit(-1)
+
             extract_file(filename, output_dir=output)
 
         os.chdir(self.restore_path)

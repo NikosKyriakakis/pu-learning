@@ -1,15 +1,15 @@
 {
     "embedding_options": {
         "glove": {
-            "command": "wget --no-check-certificate http://nlp.stanford.edu/data/glove.6B.zip",
+            "command": "curl -LO https://nlp.stanford.edu/data/glove.6B.zip",
             "filename": "glove.6B.zip"
         },
         "fasttext-wiki": {
-            "command": "wget --no-check-certificate https://dl.fbaipublicfiles.com/fasttext/vectors-english/wiki-news-300d-1M.vec.zip",
+            "command": "curl -LO https://dl.fbaipublicfiles.com/fasttext/vectors-english/wiki-news-300d-1M.vec.zip",
             "filename": "wiki-news-300d-1M.vec.zip"
         },
         "fasttext-crawl": {
-            "command": "wget --no-check-certificate https://dl.fbaipublicfiles.com/fasttext/vectors-english/crawl-300d-2M.vec.zip",
+            "command": "curl -LO https://dl.fbaipublicfiles.com/fasttext/vectors-english/crawl-300d-2M.vec.zip",
             "filename": "crawl-300d-2M.vec.zip"
         }
     },
@@ -31,9 +31,9 @@
         "negative_value": 0,
         "dataloader_params": {
             "batch_size": 128,
-            "num_workers": 6
+            "num_workers": 2
         },
-        "debug_mode": false
+        "debug_mode": true
     },
     "trainer_params": {
         "max_epochs": 1,
