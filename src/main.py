@@ -95,7 +95,7 @@ if __name__ == "__main__":
         
         pu_net = PUNet(
             estimator=estimator,
-            learning_rate=0.001,
+            learning_rate=settings["learning_rate"],
             loss_fn=loss_fn
         )
 
@@ -126,13 +126,8 @@ if __name__ == "__main__":
         if settings["biased_PU_assumption"]:
             break
 
-        lgbm = LGBMClassifier(
-            n_estimators=500,
-            objective="binary",
-            device="gpu",
-            class_weight="balanced",
-            learning_rate=0.01,
-        )
+        lgbm_params = settings["lgbm_params"]
+        lgbm = LGBMClassifier(**lgbm_params)
 
         # Using the sample selector above
         # we extract positives to enrich the positive set

@@ -34,7 +34,7 @@ class TextDataset(Dataset):
 class TextDataModule(pl.LightningDataModule):
     def __init__(self, csv_file, input_field, target_field, download_mgr, negative_value, keep_positive=0.17,
                  vectorizer_factory=SequenceVectorizer, prep_funcs=None,
-                 dataloader_params=None, datasplit_params=None) -> None:
+                 dataloader_params=None, datasplit_params=None, debug_mode=False) -> None:
 
         super().__init__()
 
@@ -44,6 +44,7 @@ class TextDataModule(pl.LightningDataModule):
         self._train_set = None
         self._vectorizer = None
         self._cached_set = None
+        self._debug_mode = debug_mode
 
         if datasplit_params is None:
             datasplit_params = {
@@ -120,6 +121,10 @@ class TextDataModule(pl.LightningDataModule):
         else:
             raise UserWarning(error("Invalid label type provided"))
 
+        if self._debug_mode:
+            self._documents = self._documents.sample(frac=1).reset_index(drop=True)
+            self._documents = self._documents[:1000]
+
         indices = extract_sample(self._documents["label"], ratio=self._keep_positive, value=1)
         self._documents["pu-label"] = 0
         self._documents.loc[indices, "pu-label"] = 1
@@ -136,10 +141,6 @@ class TextDataModule(pl.LightningDataModule):
         self.train_split_logs = train_set["pu-label"].value_counts().to_dict()
         self.val_split_logs = val_set["pu-label"].value_counts().to_dict()
         self.test_split_logs = test_set["pu-label"].value_counts().to_dict()
-
-        print(warning(f'Train:\n {train_set["pu-label"].value_counts()}'))
-        print(warning(f'Val:\n {val_set["pu-label"].value_counts()}'))
-        print(warning(f'Test:\n {test_set["pu-label"].value_counts()}'))
 
         self._cached_set = train_set.copy().reset_index(drop=True)
 

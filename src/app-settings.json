@@ -21,8 +21,8 @@
     "data_dir": "../data",
     "embedding_dir": "../embeddings",
     "pretrained_embedding": {
-        "option": "glove.6B.300d",
-        "dim": 300
+        "option": "glove.6B.50d",
+        "dim": 50
     },
     "datamodule_params": {
         "csv_file": "imdb.txt",
@@ -31,14 +31,14 @@
         "negative_value": 0,
         "dataloader_params": {
             "batch_size": 128,
-            "num_workers": 1
-        }
+            "num_workers": 6
+        },
+        "debug_mode": false
     },
     "trainer_params": {
         "max_epochs": 1,
         "accelerator": "gpu",
-        "devices": 1,
-        "precision": "16-mixed"
+        "devices": 1
     },
     "loss_params": {
         "prior": 0.5,
@@ -46,7 +46,15 @@
         "beta": 0.0,
         "positive_class": 1
     },
+    "learning_rate": 0.001,
     "loss-function": "NNPU",
     "total-iterations": 3,
-    "biased_PU_assumption": false
+    "biased_PU_assumption": false,
+    "lgbm_params": {
+        "objective": "binary",
+        "n_estimators": 500,
+        "device": "gpu",
+        "class_weight": "balanced",
+        "learning_rate": 0.01
+    }
 }
