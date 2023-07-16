@@ -1,11 +1,8 @@
 data/
-.idea/
 embeddings/
 __pycache__/
 lightning_logs/
 .pytest_cache/
 .vscode/
-catboost_info/
 logs.txt
-src/demo.ipynb
-src/pulearn/daps.py
+log.txt
