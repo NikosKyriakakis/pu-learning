@@ -57,7 +57,8 @@ class DownloadManager:
                 print(success("Embedding file already present, skipping download ..."))
             else:
                 try:
-                    subprocess.run(embedding["command"], check=True)
+                    command = embedding["command"].split()
+                    subprocess.run(command, check=True)
                 except subprocess.CalledProcessError as e:
                     print("Execution failed:", e, file=sys.stderr)
                     sys.exit(-1)

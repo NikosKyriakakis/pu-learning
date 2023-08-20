@@ -31,7 +31,7 @@
         "negative_value": 0,
         "dataloader_params": {
             "batch_size": 128,
-            "num_workers": 2
+            "num_workers": 12
         },
         "debug_mode": true
     },
@@ -52,9 +52,11 @@
     "biased_PU_assumption": false,
     "lgbm_params": {
         "objective": "binary",
-        "n_estimators": 500,
+        "n_estimators": 1000,
         "device": "gpu",
         "class_weight": "balanced",
-        "learning_rate": 0.01
+        "learning_rate": 0.01,
+        "num_leaves": 15,
+        "verbose": -1
     }
 }

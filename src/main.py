@@ -46,10 +46,12 @@ if __name__ == "__main__":
         mgr=download_mgr
     )
 
-    experiment["option"] = settings["pretrained_embedding"]["option"]
-
     embeddings_option = settings["pretrained_embedding"]["option"]
     dim = settings["pretrained_embedding"]["dim"]
+
+    experiment["option"] = embeddings_option
+    experiment["dim"] = dim
+    
     pretrained = loader.init_embeddings(dim=dim, pretrained=embeddings_option)
 
     experiment["trainer_params"] = settings["trainer_params"]
@@ -113,7 +115,7 @@ if __name__ == "__main__":
         print(success(f"Iteration: {iteration} - Current labels: \t{pu_labels}"))
         clf_report["Current sample selection stats"] = pu_labels
 
-        experiment[f"ITERATION-{iteration}"] = [test_loss[0], clf_report]
+        experiment[f"iteration-{iteration}"] = [test_loss[0], clf_report]
 
         # Break loop if positive 
         # augmentation is not desired
