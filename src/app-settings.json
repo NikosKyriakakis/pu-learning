@@ -25,18 +25,18 @@
         "dim": 50
     },
     "datamodule_params": {
-        "csv_file": "imdb.txt",
-        "input_field": "Text",
-        "target_field": "Sentiment",
-        "negative_value": 0,
+        "csv_file": "PU_20News.csv",
+        "input_field": "text",
+        "target_field": "label",
+        "negative_value": -1,
         "dataloader_params": {
-            "batch_size": 128,
+            "batch_size": 64,
             "num_workers": 12
         },
-        "debug_mode": true
+        "debug_mode": false
     },
     "trainer_params": {
-        "max_epochs": 1,
+        "max_epochs": 25,
         "accelerator": "gpu",
         "devices": 1
     },
@@ -47,9 +47,9 @@
         "positive_class": 1
     },
     "learning_rate": 0.001,
-    "loss-function": "NNPU",
+    "loss-function": "BCE",
     "total-iterations": 3,
-    "biased_PU_assumption": false,
+    "use_positive_augmentation": true,
     "lgbm_params": {
         "objective": "binary",
         "n_estimators": 1000,

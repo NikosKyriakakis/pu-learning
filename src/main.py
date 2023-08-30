@@ -25,6 +25,8 @@ if __name__ == "__main__":
     download_mgr = DownloadManager(settings)
 
     experiment = {"Dataset": settings["datamodule_params"]["csv_file"]}
+    experiment["loss-function"] = settings["loss-function"]
+    experiment["use_positive_augmentation"] = settings["use_positive_augmentation"]
 
     # The text data module is the main
     # component that prepares and provides
@@ -119,7 +121,7 @@ if __name__ == "__main__":
 
         # Break loop if positive 
         # augmentation is not desired
-        if settings["biased_PU_assumption"]:
+        if not settings["use_positive_augmentation"]:
             break
 
         lgbm_params = settings["lgbm_params"]
