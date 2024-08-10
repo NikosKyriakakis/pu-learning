@@ -1,7 +1,6 @@
 # PU Learning - Document Classification
-Thesis project for the MSc in Data Science (National Center for Scientific Research &amp; University of the Peloponnese)
 
-Active project on document classification using Positive - Unlabeled learning techniques.
+Dcument classification using Positive - Unlabeled learning techniques.
 
 ## Dataset Sources
 [1] M. Ott, Y. Choi, C. Cardie, and J.T. Hancock. 2011. Finding Deceptive Opinion Spam by Any Stretch of the Imagination. In Proceedings of the 49th Annual Meeting of the Association for Computational Linguistics: Human Language Technologies.
